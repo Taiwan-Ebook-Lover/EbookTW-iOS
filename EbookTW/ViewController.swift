@@ -8,18 +8,14 @@
 
 import UIKit
 import WebKit
+import SafariServices
 
 class ViewController: UITableViewController {
 
     private var urls = [URL]()
-    private var webviews = [WKWebView]()
     private var cells = [UITableViewCell]()
 
     private let webviewTaaze : WKWebView = {
-        guard let url = URL(string: "https://www.taaze.tw/search_go.html?keyword%5B%5D=9789861371955&keyType%5B%5D=0&prodKind=4&prodCatId=141") else {
-            assertionFailure()
-            return WKWebView()
-        }
         let userScriptString = "var styleElement = document.createElement('style');" +
             "document.documentElement.appendChild(styleElement);" +
         "styleElement.textContent = 'div#newHeaderV001, div#top_banner, div#searchresult_tool, div.searchresult_catalg_list, div.searchresult_page_list, div#feedbackSelect, div#newFooter {display: none !important; height: 0 !important;}'"
@@ -27,16 +23,11 @@ class ViewController: UITableViewController {
         let config = WKWebViewConfiguration()
         config.userContentController.addUserScript(userScript)
         let webview = WKWebView(frame: .zero, configuration: config)
-        webview.load(URLRequest(url: url))
         webview.isUserInteractionEnabled = false
         return webview
     }()
 
     private let webviewReadmoo : WKWebView = {
-        guard let url = URL(string: "https://readmoo.com/search/keyword?q=9789861371955") else {
-            assertionFailure()
-            return WKWebView()
-        }
         let userScriptString = "var styleElement = document.createElement('style');" +
             "document.documentElement.appendChild(styleElement);" +
         "styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-search-summary, div.rm-ct-quickBar, div#pagination, footer {display: none !important; height: 0 !important;}'"
@@ -44,17 +35,11 @@ class ViewController: UITableViewController {
         let config = WKWebViewConfiguration()
         config.userContentController.addUserScript(userScript)
         let webview = WKWebView(frame: .zero, configuration: config)
-        webview.load(URLRequest(url: url))
         webview.isUserInteractionEnabled = false
         return webview
     }()
 
     private let webviewBooks : WKWebView = {
-        guard let url = URL(string: "http://search.books.com.tw/search/query/key/9789861371955/cat/EBA/") else {
-            assertionFailure()
-            return WKWebView()
-        }
-        
         let userAgentString = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_3 like Mac OS X) AppleWebKit/603.3.8 (KHTML, like Gecko) Version/10.0 Mobile/14G60 Safari/602.1"
         // Note: Swift 4 includes support for multi-line string literals.
         // https://stackoverflow.com/a/24091332/3796488
@@ -66,7 +51,6 @@ class ViewController: UITableViewController {
         config.userContentController.addUserScript(userScript)
         let webview = WKWebView(frame: .zero, configuration: config)
         webview.customUserAgent = userAgentString
-        webview.load(URLRequest(url: url))
         webview.isUserInteractionEnabled = false
         return webview
     }()
@@ -102,11 +86,43 @@ class ViewController: UITableViewController {
             cell.selectionStyle = .none
             self.cells.append(cell)
         }
+        // TODO:
+        searchEbook(keyword: "9789861371955")
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+
+    func searchEbook(keyword: String) {
+        // intensionally forced unwrapping below
+        // to crash at build time if error
+        let urlTaaze = URL(string: "https://www.taaze.tw/search_go.html?keyword%5B%5D=" + keyword + "&keyType%5B%5D=0&prodKind=4&prodCatId=141")!
+        let urlReadmoo = URL(string: "https://readmoo.com/search/keyword?q=" + keyword)!
+        let urlBooks = URL(string: "http://search.books.com.tw/search/query/key/" + keyword + "/cat/EBA/")!
+
+        urls.removeAll()
+        for index in 0...2 {
+            if let ebookProvider = EbookProvider(rawValue: index) {
+                let url : URL
+                switch ebookProvider {
+                case .taaze:
+                    url = urlTaaze
+                case .readmoo:
+                    url = urlReadmoo
+                case .books:
+                    url = urlBooks
+                }
+                urls.append(url)
+            } else {
+                assertionFailure()
+            }
+        }
+
+        webviewTaaze.load(URLRequest(url: urlTaaze))
+        webviewReadmoo.load(URLRequest(url: urlReadmoo))
+        webviewBooks.load(URLRequest(url: urlBooks))
     }
 
     // MARK: UITableViewDataSource
@@ -150,15 +166,11 @@ class ViewController: UITableViewController {
     // MARK: UITableViewDelegate
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if let ebookProvider = EbookProvider(rawValue: indexPath.section) {
-            switch ebookProvider {
-            case .taaze:
-                break
-            case .readmoo:
-                break
-            case .books:
-                break
-            }
+        if indexPath.section < urls.count {
+            let safariVC = SFSafariViewController(url: urls[indexPath.section])
+            self.present(safariVC, animated: true, completion: nil)
+        } else {
+            assertionFailure()
         }
     }
 }
