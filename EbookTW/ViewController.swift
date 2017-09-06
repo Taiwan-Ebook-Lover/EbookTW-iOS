@@ -11,8 +11,8 @@ import WebKit
 
 class ViewController: UIViewController {
 
-    private let webview : WKWebView = {
-        guard let url = URL(string: "http://search.books.com.tw/search/query/key/%E8%A2%AB%E8%A8%8E%E5%8E%AD%E7%9A%84%E5%8B%87%E6%B0%A3/") else {
+    private let webviewBooks : WKWebView = {
+        guard let url = URL(string: "http://search.books.com.tw/search/query/key/9789861371955/cat/EBA/") else {
             assertionFailure()
             return WKWebView()
         }
@@ -22,7 +22,7 @@ class ViewController: UIViewController {
         // https://stackoverflow.com/a/24091332/3796488
         let userScriptString = "var styleElement = document.createElement('style');" +
             "document.documentElement.appendChild(styleElement);" +
-        "styleElement.textContent = 'div#content {padding: 0 !important} div#header {display: none !important; height: 0 !important}';"
+        "styleElement.textContent = 'div#header, div#catbtn, div.tbar, h4.keywordlist {display: none !important; height: 0 !important;} div#content {padding: 0 !important;}'"
         let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
         config.userContentController.addUserScript(userScript)
@@ -32,17 +32,25 @@ class ViewController: UIViewController {
         return webview
     }()
 
-    override func loadView() {
-        view = webview
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        
-        
-        
-        
+        view.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+
+        let labelBooks = UILabel()
+        labelBooks.font = UIFont.preferredFont(forTextStyle: .headline)
+        labelBooks.text = "博客來"
+
+        view.etw_addSubViews(subViews: [labelBooks, webviewBooks])
+        let viewsDict = ["labelBooks": labelBooks, "webviewBooks": webviewBooks]
+        var constraints = [NSLayoutConstraint]()
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-[labelBooks]-|", options: [], metrics: nil, views: viewsDict)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|[webviewBooks]|", options: [], metrics: nil, views: viewsDict)
+        constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:|[labelBooks][webviewBooks(200)]", options: [], metrics: nil, views: viewsDict)
+        NSLayoutConstraint.activate(constraints)
+
+        title = "Ebook"
+        navigationController?.navigationBar.isTranslucent = false
     }
 
     override func didReceiveMemoryWarning() {
@@ -53,3 +61,13 @@ class ViewController: UIViewController {
 
 }
 
+extension UIView {
+
+    /// Convenience method for Auto Layout
+    public func etw_addSubViews(subViews: [UIView]) {
+        for subView : UIView in subViews {
+            subView.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(subView)
+        }
+    }
+}
