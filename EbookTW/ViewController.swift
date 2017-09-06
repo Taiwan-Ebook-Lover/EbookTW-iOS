@@ -61,7 +61,7 @@ class ViewController: UITableViewController {
         super.viewDidLoad()
 
         title = "Ebook"
-        view.backgroundColor = UIColor.brown.withAlphaComponent(0.9)
+        view.backgroundColor = UIColor.etw_tintColor.withAlphaComponent(0.95)
         tableView.rowHeight = 200.0
 
         for index in 0...2 {
@@ -193,7 +193,7 @@ class ViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section < urls.count {
             let safariVC = SFSafariViewController(url: urls[indexPath.section])
-            safariVC.preferredControlTintColor = .brown
+            safariVC.preferredControlTintColor = UIColor.etw_tintColor
             self.present(safariVC, animated: true, completion: nil)
         }
     }

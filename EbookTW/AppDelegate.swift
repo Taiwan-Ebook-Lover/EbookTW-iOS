@@ -21,9 +21,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window.makeKeyAndVisible()
         self.window = window
 
-        window.tintColor = .brown
+        window.tintColor = UIColor.etw_tintColor
         UINavigationBar.appearance().isTranslucent = false
-        UINavigationBar.appearance().barTintColor = .brown
+        UINavigationBar.appearance().barTintColor = UIColor.etw_tintColor
         UINavigationBar.appearance().titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
         UIBarButtonItem.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).tintColor = .white   // searchBar cancel button
         return true
@@ -54,3 +54,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 }
 
+extension UIColor {
+
+    static let etw_tintColor = UIColor(red:0.54, green:0.82, blue:0.76, alpha:1.0)
+}
