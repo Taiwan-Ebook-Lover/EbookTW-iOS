@@ -23,9 +23,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         window.tintColor = .brown
         UINavigationBar.appearance().isTranslucent = false
-        UINavigationBar.appearance().titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
-        UINavigationBar.appearance().tintColor = UIColor.white
         UINavigationBar.appearance().barTintColor = .brown
+        UINavigationBar.appearance().titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
+        UIBarButtonItem.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).tintColor = .white   // searchBar cancel button
         return true
     }
 

@@ -12,8 +12,10 @@ import SafariServices
 
 class ViewController: UITableViewController {
 
+    fileprivate var keyword = String()  // for recovering when pressing cancel button
     private var urls = [URL]()
     private var cells = [UITableViewCell]()
+    private let searchBar = UISearchBar()
 
     private let webviewTaaze : WKWebView = {
         let userScriptString = "var styleElement = document.createElement('style');" +
@@ -63,6 +65,7 @@ class ViewController: UITableViewController {
         tableView.rowHeight = 180.0
 
         for index in 0...2 {
+            // TODO: add UIProgressView with iOS 11 block-based key value observing
             var webview : WKWebView
             if let ebookProvider = EbookProvider(rawValue: index) {
                 switch ebookProvider {
@@ -86,8 +89,18 @@ class ViewController: UITableViewController {
             cell.selectionStyle = .none
             self.cells.append(cell)
         }
-        // TODO:
-        searchEbook(keyword: "9789861371955")
+
+        searchBar.placeholder = "輸入 書名 / ISBN"
+        searchBar.delegate = self
+//        let qrCodeButton = UIButton(type: .system)
+//        qrCodeButton.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 46.0)
+//        qrCodeButton.backgroundColor = .brown
+//        qrCodeButton.setTitle("QR Code", for: .normal)
+//        qrCodeButton.setTitleColor(.white, for: .normal)
+//        qrCodeButton.titleLabel?.font = UIFont.systemFont(ofSize: 22.0)
+//        qrCodeButton.addTarget(self, action: #selector(didTapSearchButton), for: .touchUpInside)
+//        searchBar.inputAccessoryView = qrCodeButton
+        navigationItem.titleView = searchBar
     }
 
     override func didReceiveMemoryWarning() {
@@ -95,12 +108,24 @@ class ViewController: UITableViewController {
         // Dispose of any resources that can be recreated.
     }
 
-    func searchEbook(keyword: String) {
+    func didTapSearchButton() {
+        if let keyword = searchBar.text {
+            self.keyword = keyword
+            searchEbook(keyword: keyword)
+        }
+        searchBar.resignFirstResponder()    // must do after self.keyword is set
+    }
+
+    private func searchEbook(keyword: String) {
         // intensionally forced unwrapping below
         // to crash at build time if error
-        let urlTaaze = URL(string: "https://www.taaze.tw/search_go.html?keyword%5B%5D=" + keyword + "&keyType%5B%5D=0&prodKind=4&prodCatId=141")!
-        let urlReadmoo = URL(string: "https://readmoo.com/search/keyword?q=" + keyword)!
-        let urlBooks = URL(string: "http://search.books.com.tw/search/query/key/" + keyword + "/cat/EBA/")!
+        guard let keywordEncoded = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            assertionFailure()
+            return
+        }
+        let urlTaaze = URL(string: "https://www.taaze.tw/search_go.html?keyword%5B%5D=" + keywordEncoded + "&keyType%5B%5D=0&prodKind=4&prodCatId=141")!
+        let urlReadmoo = URL(string: "https://readmoo.com/search/keyword?q=" + keywordEncoded)!
+        let urlBooks = URL(string: "http://search.books.com.tw/search/query/key/" + keywordEncoded + "/cat/EBA/")!
 
         urls.removeAll()
         for index in 0...2 {
@@ -168,10 +193,31 @@ class ViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section < urls.count {
             let safariVC = SFSafariViewController(url: urls[indexPath.section])
+            safariVC.preferredControlTintColor = .brown
             self.present(safariVC, animated: true, completion: nil)
-        } else {
-            assertionFailure()
         }
+    }
+}
+
+extension ViewController : UISearchBarDelegate {
+
+    func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool {
+        searchBar.setShowsCancelButton(true, animated: true)
+        return true
+    }
+
+    func searchBarShouldEndEditing(_ searchBar: UISearchBar) -> Bool {
+        searchBar.setShowsCancelButton(false, animated: true)
+        searchBar.text = self.keyword
+        return true
+    }
+
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        didTapSearchButton()
+    }
+
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
     }
 }
 
