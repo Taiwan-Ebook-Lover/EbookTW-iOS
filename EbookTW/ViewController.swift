@@ -32,7 +32,7 @@ class ViewController: UITableViewController {
     private let webviewReadmoo : WKWebView = {
         let userScriptString = "var styleElement = document.createElement('style');" +
             "document.documentElement.appendChild(styleElement);" +
-        "styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-search-summary, div.rm-ct-quickBar, div#pagination, footer {display: none !important; height: 0 !important;}'"
+        "styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-ct-quickBar, div#pagination, footer {display: none !important; height: 0 !important;}'"   // keep div.rm-search-summary for no search result
         let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
         config.userContentController.addUserScript(userScript)
@@ -62,7 +62,7 @@ class ViewController: UITableViewController {
 
         title = "Ebook"
         view.backgroundColor = UIColor.brown.withAlphaComponent(0.9)
-        tableView.rowHeight = 180.0
+        tableView.rowHeight = 200.0
 
         for index in 0...2 {
             // TODO: add UIProgressView with iOS 11 block-based key value observing
