@@ -9,7 +9,45 @@
 import UIKit
 import WebKit
 
-class ViewController: UIViewController {
+class ViewController: UITableViewController {
+
+    private var urls = [URL]()
+    private var webviews = [WKWebView]()
+    private var cells = [UITableViewCell]()
+
+    private let webviewTaaze : WKWebView = {
+        guard let url = URL(string: "https://www.taaze.tw/search_go.html?keyword%5B%5D=9789861371955&keyType%5B%5D=0&prodKind=4&prodCatId=141") else {
+            assertionFailure()
+            return WKWebView()
+        }
+        let userScriptString = "var styleElement = document.createElement('style');" +
+            "document.documentElement.appendChild(styleElement);" +
+        "styleElement.textContent = 'div#newHeaderV001, div#top_banner, div#searchresult_tool, div.searchresult_catalg_list, div.searchresult_page_list, div#feedbackSelect, div#newFooter {display: none !important; height: 0 !important;}'"
+        let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        let config = WKWebViewConfiguration()
+        config.userContentController.addUserScript(userScript)
+        let webview = WKWebView(frame: .zero, configuration: config)
+        webview.load(URLRequest(url: url))
+        webview.isUserInteractionEnabled = false
+        return webview
+    }()
+
+    private let webviewReadmoo : WKWebView = {
+        guard let url = URL(string: "https://readmoo.com/search/keyword?q=9789861371955") else {
+            assertionFailure()
+            return WKWebView()
+        }
+        let userScriptString = "var styleElement = document.createElement('style');" +
+            "document.documentElement.appendChild(styleElement);" +
+        "styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-search-summary, div.rm-ct-quickBar, div#pagination, footer {display: none !important; height: 0 !important;}'"
+        let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        let config = WKWebViewConfiguration()
+        config.userContentController.addUserScript(userScript)
+        let webview = WKWebView(frame: .zero, configuration: config)
+        webview.load(URLRequest(url: url))
+        webview.isUserInteractionEnabled = false
+        return webview
+    }()
 
     private let webviewBooks : WKWebView = {
         guard let url = URL(string: "http://search.books.com.tw/search/query/key/9789861371955/cat/EBA/") else {
@@ -22,35 +60,48 @@ class ViewController: UIViewController {
         // https://stackoverflow.com/a/24091332/3796488
         let userScriptString = "var styleElement = document.createElement('style');" +
             "document.documentElement.appendChild(styleElement);" +
-        "styleElement.textContent = 'div#header, div#catbtn, div.tbar, h4.keywordlist {display: none !important; height: 0 !important;} div#content {padding: 0 !important;}'"
-        let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        "styleElement.textContent = 'div#header, div#catbtn, div.tbar, h4.keywordlist, div#footer {display: none !important; height: 0 !important;} div#content {padding: 0 !important;}'"
+        let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
         config.userContentController.addUserScript(userScript)
         let webview = WKWebView(frame: .zero, configuration: config)
         webview.customUserAgent = userAgentString
         webview.load(URLRequest(url: url))
+        webview.isUserInteractionEnabled = false
         return webview
     }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = UIColor.white.withAlphaComponent(0.9)
-
-        let labelBooks = UILabel()
-        labelBooks.font = UIFont.preferredFont(forTextStyle: .headline)
-        labelBooks.text = "博客來"
-
-        view.etw_addSubViews(subViews: [labelBooks, webviewBooks])
-        let viewsDict = ["labelBooks": labelBooks, "webviewBooks": webviewBooks]
-        var constraints = [NSLayoutConstraint]()
-        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-[labelBooks]-|", options: [], metrics: nil, views: viewsDict)
-        constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|[webviewBooks]|", options: [], metrics: nil, views: viewsDict)
-        constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:|[labelBooks][webviewBooks(200)]", options: [], metrics: nil, views: viewsDict)
-        NSLayoutConstraint.activate(constraints)
-
         title = "Ebook"
-        navigationController?.navigationBar.isTranslucent = false
+        view.backgroundColor = UIColor.brown.withAlphaComponent(0.9)
+        tableView.rowHeight = 180.0
+
+        for index in 0...2 {
+            var webview : WKWebView
+            if let ebookProvider = EbookProvider(rawValue: index) {
+                switch ebookProvider {
+                case .taaze:
+                    webview = webviewTaaze
+                case .readmoo:
+                    webview = webviewReadmoo
+                case .books:
+                    webview = webviewBooks
+                }
+            } else {
+                assertionFailure()
+                webview = WKWebView()
+            }
+            let cell = UITableViewCell()
+            cell.contentView.etw_add(subViews: [webview])
+            var constraints = [NSLayoutConstraint]()
+            constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|[webview]|", options: [], metrics: nil, views: ["webview": webview])
+            constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:|[webview]|", options: [], metrics: nil, views: ["webview": webview])
+            NSLayoutConstraint.activate(constraints)
+            cell.selectionStyle = .none
+            self.cells.append(cell)
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -58,13 +109,64 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
+    // MARK: UITableViewDataSource
 
+    enum EbookProvider : Int {
+        case taaze, readmoo, books
+    }
+
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        return 3
+    }
+
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 1
+    }
+
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        if let ebookProvider = EbookProvider(rawValue: section) {
+            switch ebookProvider {
+            case .taaze:
+                return "TAAZE"
+            case .readmoo:
+                return "Readmoo"
+            case .books:
+                return "博客來"
+            }
+        }
+        assertionFailure()
+        return String()
+    }
+
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        // Notice: we're not reusing UITableViewCell because WKWebView is not reusable
+        if indexPath.section < cells.count {
+            return cells[indexPath.section]
+        }
+        assertionFailure()
+        return UITableViewCell()
+    }
+
+    // MARK: UITableViewDelegate
+
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if let ebookProvider = EbookProvider(rawValue: indexPath.section) {
+            switch ebookProvider {
+            case .taaze:
+                break
+            case .readmoo:
+                break
+            case .books:
+                break
+            }
+        }
+    }
 }
 
 extension UIView {
 
     /// Convenience method for Auto Layout
-    public func etw_addSubViews(subViews: [UIView]) {
+    public func etw_add(subViews: [UIView]) {
         for subView : UIView in subViews {
             subView.translatesAutoresizingMaskIntoConstraints = false
             addSubview(subView)

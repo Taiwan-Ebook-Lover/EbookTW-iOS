@@ -22,6 +22,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window = window
 
         window.tintColor = .brown
+        UINavigationBar.appearance().isTranslucent = false
+        UINavigationBar.appearance().titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
+        UINavigationBar.appearance().tintColor = UIColor.white
+        UINavigationBar.appearance().barTintColor = .brown
         return true
     }
 
