@@ -18,41 +18,71 @@ class ViewController: UITableViewController {
     private let searchBar = UISearchBar()
 
     private let webviewTaaze : WKWebView = {
-        let userScriptString = "var styleElement = document.createElement('style');" +
+        let zoom : Int
+        let width : CGFloat
+        switch UIScreen.main.bounds.width {  // fixed to portrait
+        case 320..<375: // iPhone 5
+            zoom = 300
+            width = 230
+        case 375..<414: // iPhone 6
+            zoom = 330
+            width = 260
+        case 414..<768: // iPhone 6 Plus
+            zoom = 330
+            width = 300
+        default:
+            assertionFailure()
+            zoom = 0
+            width = 0
+        }
+        let userScriptString1 = "var styleElement = document.createElement('style');" +
             "document.documentElement.appendChild(styleElement);" +
-        "styleElement.textContent = 'div#newHeaderV001, div#top_banner, div#searchresult_tool, div.searchresult_catalg_list, div.searchresult_page_list, div#feedbackSelect, div#newFooter {display: none !important; height: 0 !important;}'"
-        let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+            "styleElement.textContent = 'div#newHeaderV001, div#top_banner, div#searchresult_tool, div.searchresult_catalg_list, div.searchresult_page_list, div#feedbackSelect, div#newFooter {display: none !important; height: 0 !important;} div#div#searchresult_tool { width: 100% !important;} body {zoom: \(zoom)% !important;} div.one {margin-left: -180px !important;} div.two {float: left !important; width: \(width)px !important;}'"
+        let userScriptString2 = "var element1 = document.getElementById('searchresult_tool');" +
+            "element1.parentElement.style.float = 'none';" +
+            "element1.parentElement.style.marginTop = '-30px';" +
+            "element1.parentElement.parentElement.style.margin = '0';" +
+            "element1.parentElement.parentElement.style.padding = '0';" +
+            "element1.nextElementSibling.style.display = 'none';" +
+            "var element2 = document.getElementById('searchresult_catalg_list');" +
+            "element1.parentElement.style.width = '0';"
+        let userScript1 = WKUserScript(source: userScriptString1, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        let userScript2 = WKUserScript(source: userScriptString2, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
-        config.userContentController.addUserScript(userScript)
+        config.userContentController.addUserScript(userScript1)
+        config.userContentController.addUserScript(userScript2)
         let webview = WKWebView(frame: .zero, configuration: config)
         webview.isUserInteractionEnabled = false
         return webview
     }()
 
     private let webviewReadmoo : WKWebView = {
-        let userScriptString = "var styleElement = document.createElement('style');" +
+        let userScriptString1 = "var styleElement = document.createElement('style');" +
             "document.documentElement.appendChild(styleElement);" +
-        "styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-ct-quickBar, div#pagination, footer {display: none !important; height: 0 !important;}'"   // keep div.rm-search-summary for no search result
-        let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        "styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-ct-quickBar, div#pagination, footer {display: none !important; height: 0 !important;} ul#main_items li:not(:first-child) {display: none !important;}'"
+        // only keep div.rm-search-summary for no search result
+        let userScriptString2 = "if (document.getElementById('chalkboard').clientHeight != 0) {" +
+        "document.getElementsByClassName('rm-search-summary')[0].style.display = 'none' }"
+        let userScript1 = WKUserScript(source: userScriptString1, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        let userScript2 = WKUserScript(source: userScriptString2, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
-        config.userContentController.addUserScript(userScript)
+        config.userContentController.addUserScript(userScript1)
+        config.userContentController.addUserScript(userScript2)
         let webview = WKWebView(frame: .zero, configuration: config)
         webview.isUserInteractionEnabled = false
         return webview
     }()
 
     private let webviewBooks : WKWebView = {
-        let userAgentString = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_3 like Mac OS X) AppleWebKit/603.3.8 (KHTML, like Gecko) Version/10.0 Mobile/14G60 Safari/602.1"
-        // Note: Swift 4 includes support for multi-line string literals.
+        // TODO: Swift 4 includes support for multi-line string literals.
         // https://stackoverflow.com/a/24091332/3796488
         let userScriptString = "var styleElement = document.createElement('style');" +
             "document.documentElement.appendChild(styleElement);" +
-        "styleElement.textContent = 'div#header, div#catbtn, div.tbar, h4.keywordlist, div#footer {display: none !important; height: 0 !important;} div#content {padding: 0 !important;}'"
+        "styleElement.textContent = 'div#header, div#catbtn, div.tbar, h4.keywordlist, div.mm_031, div#footer {display: none !important; height: 0 !important;} div#content {padding: 0 !important;} ul.bd li:not(:first-child) {display: none !important;}'"
         let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
         config.userContentController.addUserScript(userScript)
         let webview = WKWebView(frame: .zero, configuration: config)
-        webview.customUserAgent = userAgentString
         webview.isUserInteractionEnabled = false
         return webview
     }()
@@ -150,7 +180,7 @@ class ViewController: UITableViewController {
         webviewBooks.load(URLRequest(url: urlBooks))
     }
 
-    // MARK: UITableViewDataSource
+    // MARK: - UITableViewDataSource
 
     enum EbookProvider : Int {
         case taaze, readmoo, books
@@ -188,16 +218,18 @@ class ViewController: UITableViewController {
         return UITableViewCell()
     }
 
-    // MARK: UITableViewDelegate
+    // MARK: - UITableViewDelegate
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section < urls.count {
             let safariVC = SFSafariViewController(url: urls[indexPath.section])
-            safariVC.preferredControlTintColor = UIColor.etw_tintColor
+            safariVC.preferredControlTintColor = UIColor(red:0.34, green:0.62, blue:0.56, alpha:1.0)
             self.present(safariVC, animated: true, completion: nil)
         }
     }
 }
+
+// MARK: - UISearchBarDelegate
 
 extension ViewController : UISearchBarDelegate {
 
