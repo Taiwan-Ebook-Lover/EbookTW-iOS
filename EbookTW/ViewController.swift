@@ -223,7 +223,9 @@ class ViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section < urls.count {
             let safariVC = SFSafariViewController(url: urls[indexPath.section])
-            safariVC.preferredControlTintColor = UIColor(red:0.34, green:0.62, blue:0.56, alpha:1.0)
+            if #available(iOS 10.0, *) {
+                safariVC.preferredControlTintColor = UIColor(red:0.34, green:0.62, blue:0.56, alpha:1.0)
+            }
             self.present(safariVC, animated: true, completion: nil)
         }
     }
