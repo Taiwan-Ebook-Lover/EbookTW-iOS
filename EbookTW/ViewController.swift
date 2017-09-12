@@ -173,7 +173,7 @@ class ViewController: UITableViewController {
         let urlKobo = URL(string: "https://www.kobo.com/tw/zh/search?Query=" + keywordEncoded)!
 
         urls.removeAll()
-        for index in 0...2 {
+        for index in 0...(EbookProvider.count - 1) {
             if let ebookProvider = EbookProvider(rawValue: index) {
                 let url : URL
                 switch ebookProvider {
