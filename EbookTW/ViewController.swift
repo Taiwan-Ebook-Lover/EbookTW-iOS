@@ -87,6 +87,18 @@ class ViewController: UITableViewController {
         return webview
     }()
 
+    private let webviewKobo : WKWebView = {
+        let userScriptString = "var styleElement = document.createElement('style');" +
+            "document.documentElement.appendChild(styleElement);" +
+        "styleElement.textContent = 'header, div.rich-header-spacer, div.full-top, div.content-top, aside, button.add-to-cart, div.pagination, footer {display: none !important; height: 0 !important; width: 0 !important} ul.result-items li:not(:first-child) {display: none !important;}'"
+        let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        let config = WKWebViewConfiguration()
+        config.userContentController.addUserScript(userScript)
+        let webview = WKWebView(frame: .zero, configuration: config)
+        webview.isUserInteractionEnabled = false
+        return webview
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -94,7 +106,7 @@ class ViewController: UITableViewController {
         view.backgroundColor = UIColor.etw_tintColor.withAlphaComponent(0.95)
         tableView.rowHeight = 200.0
 
-        for index in 0...2 {
+        for index in 0...(EbookProvider.count - 1) {
             // TODO: add UIProgressView with iOS 11 block-based key value observing
             var webview : WKWebView
             if let ebookProvider = EbookProvider(rawValue: index) {
@@ -105,6 +117,8 @@ class ViewController: UITableViewController {
                     webview = webviewReadmoo
                 case .books:
                     webview = webviewBooks
+                case .kobo:
+                    webview = webviewKobo
                 }
             } else {
                 assertionFailure()
@@ -156,6 +170,7 @@ class ViewController: UITableViewController {
         let urlTaaze = URL(string: "https://www.taaze.tw/search_go.html?keyword%5B%5D=" + keywordEncoded + "&keyType%5B%5D=0&prodKind=4&prodCatId=141")!
         let urlReadmoo = URL(string: "https://readmoo.com/search/keyword?q=" + keywordEncoded)!
         let urlBooks = URL(string: "http://search.books.com.tw/search/query/key/" + keywordEncoded + "/cat/EBA/")!
+        let urlKobo = URL(string: "https://www.kobo.com/tw/zh/search?Query=" + keywordEncoded)!
 
         urls.removeAll()
         for index in 0...2 {
@@ -168,6 +183,8 @@ class ViewController: UITableViewController {
                     url = urlReadmoo
                 case .books:
                     url = urlBooks
+                case .kobo:
+                    url = urlKobo
                 }
                 urls.append(url)
             } else {
@@ -178,16 +195,18 @@ class ViewController: UITableViewController {
         webviewTaaze.load(URLRequest(url: urlTaaze))
         webviewReadmoo.load(URLRequest(url: urlReadmoo))
         webviewBooks.load(URLRequest(url: urlBooks))
+        webviewKobo.load(URLRequest(url: urlKobo))
     }
 
     // MARK: - UITableViewDataSource
 
     enum EbookProvider : Int {
-        case taaze, readmoo, books
+        case taaze, readmoo, kobo, books
+        static let count = 4
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return 3
+        return EbookProvider.count
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -203,6 +222,8 @@ class ViewController: UITableViewController {
                 return "Readmoo"
             case .books:
                 return "博客來"
+            case .kobo:
+                return "Kobo"
             }
         }
         assertionFailure()
