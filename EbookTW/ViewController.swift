@@ -134,7 +134,8 @@ class ViewController: UITableViewController {
             self.cells.append(cell)
         }
 
-        searchBar.placeholder = "輸入 書名 / ISBN"
+        searchBar.placeholder = "輸入書名 / ISBN"
+        searchBar.autocorrectionType = .yes
         searchBar.delegate = self
 //        let qrCodeButton = UIButton(type: .system)
 //        qrCodeButton.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 46.0)
@@ -245,10 +246,14 @@ class ViewController: UITableViewController {
         if indexPath.section < urls.count {
             let safariVC = SFSafariViewController(url: urls[indexPath.section])
             if #available(iOS 10.0, *) {
-                safariVC.preferredControlTintColor = UIColor(red:0.34, green:0.62, blue:0.56, alpha:1.0)
+                safariVC.preferredControlTintColor = UIColor.etw_tintColor
             }
             self.present(safariVC, animated: true, completion: nil)
         }
+    }
+
+    override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int){
+        view.tintColor = UIColor(red:0.63, green:0.84, blue:0.81, alpha:1.0)   // #A0D5CE
     }
 }
 
