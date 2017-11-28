@@ -40,7 +40,6 @@ final class ViewController: UIViewController {
                 tableView.dataSource = yuerManager
                 tableView.delegate = yuerManager
                 tableView.backgroundColor = UIColor.etw_tintColor.withAlphaComponent(0.95)
-                tableView.rowHeight = 100.0
                 yuerManager.searchEbook(keyword: keyword)
             case .userScript(keyword: let keyword):
                 tableView.isHidden = false

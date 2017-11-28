@@ -23,27 +23,89 @@ private struct YuerEbookResult : Codable {
         let priceCurrency : String
         let price : Float
     }
+
+    func count(of ebookProvider: EbookProvider) -> Int {
+        let count : Int
+        switch ebookProvider {
+        case .taaze:
+            count = taaze.count
+        case .readmoo:
+            count = readmoo.count
+        case .books:
+            count = booksCompany.count
+        case .kobo:
+            count = kobo.count
+        }
+        return count
+    }
+}
+
+private enum EbookProviderViewState {
+    case loading, collapsed, expanded, oneResult, noResult
+}
+
+enum YuerEbookTableViewCellType {
+    case book, loading, expand, collapse, noResult
 }
 
 final class YuerEbookTableViewCell : UITableViewCell {
 
     static let cellReuseIdentifier = "YuerEbookTableViewCell"
+    var type : YuerEbookTableViewCellType = .book {
+        didSet {
+            switch type {
+            case .book:
+                break
+            case .loading:
+                centerTextLabel.textColor = .black
+                centerTextLabel.text = "搜尋中..."
+            case .expand:
+                centerTextLabel.textColor = .etw_tintColor
+                centerTextLabel.text = "顯示更多"
+            case .collapse:
+                centerTextLabel.textColor = .etw_tintColor
+                centerTextLabel.text = "收合結果"
+            case .noResult:
+                centerTextLabel.textColor = .black
+                centerTextLabel.text = "無搜尋結果"
+            }
+        }
+    }
+    private let centerTextLabel = UILabel()
 
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
         super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
         textLabel?.numberOfLines = 2
         imageView?.contentMode = .scaleAspectFit
+        centerTextLabel.textAlignment = .center
+        centerTextLabel.font = UIFont.preferredFont(forTextStyle: .headline)
+        contentView.etw_add(subViews: [centerTextLabel])
+        NSLayoutConstraint.activate([
+            centerTextLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            centerTextLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            ])
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        imageView?.image = nil
+        textLabel?.text = nil
+        detailTextLabel?.text = nil
+        centerTextLabel.text = nil
+    }
 }
+
+// MARK: - YuerManager
 
 final class YuerManager : NSObject {
 
     private weak var tableView : UITableView?
     private var result : YuerEbookResult? = nil
+    private var resultStates : [EbookProvider: EbookProviderViewState] = [.taaze: .loading, .readmoo: .loading, .kobo: .loading, .books: .loading]
 
     init(tableView: UITableView) {
         super.init()
@@ -56,6 +118,9 @@ final class YuerManager : NSObject {
             assertionFailure()
             return
         }
+        self.result = nil
+        self.resultStates = [.taaze: .loading, .readmoo: .loading, .kobo: .loading, .books: .loading]
+        self.tableView?.reloadData()
         let task = URLSession.shared.dataTask(with: url) { (data, urlResponse, error) in
             if let error = error {
                 print(error)
@@ -69,6 +134,19 @@ final class YuerManager : NSObject {
                 return
             }
             self.result = ebookResult
+            for index in 0...(EbookProvider.count - 1) {
+                if let ebookProvider = EbookProvider(rawValue: index) {
+                    let count = ebookResult.count(of: ebookProvider)
+                    switch count {
+                    case 0:
+                        self.resultStates[ebookProvider] = .noResult
+                    case 1:
+                        self.resultStates[ebookProvider] = .oneResult
+                    default:
+                        self.resultStates[ebookProvider] = .collapsed
+                    }
+                }
+            }
             DispatchQueue.main.async {
                 self.tableView?.reloadData()
             }
@@ -77,29 +155,31 @@ final class YuerManager : NSObject {
     }
 }
 
+// MARK: - UITableViewDataSource
+
 extension YuerManager : UITableViewDataSource {
 
     func numberOfSections(in tableView: UITableView) -> Int {
         return EbookProvider.count
     }
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let result = result, let ebookProvider = EbookProvider(rawValue: section) else {
             return 1
         }
-        switch ebookProvider {
-        case .taaze:
-            let count = result.taaze.count
-            return count
-        case .readmoo:
-            let count = result.readmoo.count
-            return count
-        case .books:
-            let count = result.booksCompany.count
-            return count
-        case .kobo:
-            let count = result.kobo.count
-            return count
+        let count = result.count(of: ebookProvider)
+        if let resultState = resultStates[ebookProvider] {
+            switch resultState {
+            case .collapsed:
+                return 2
+            case .expanded:
+                return count + 1
+            default:
+                return 1
+            }
         }
+        assertionFailure()
+        return 0
     }
 
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -120,56 +200,105 @@ extension YuerManager : UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: YuerEbookTableViewCell.cellReuseIdentifier, for: indexPath)
-        guard let result = result, let ebookProvider = EbookProvider(rawValue: indexPath.section) else {
+        let cell = tableView.dequeueReusableCell(withIdentifier: YuerEbookTableViewCell.cellReuseIdentifier, for: indexPath) as! YuerEbookTableViewCell
+        guard let ebookProvider = EbookProvider(rawValue: indexPath.section) else {
+            assertionFailure()
+            return cell
+        }
+        guard let result = result else {
+            cell.type = .loading
             return cell
         }
         let row = indexPath.row
-        var book : YuerEbookResult.Book? = nil
-        switch ebookProvider {
-        case .taaze:
-            if row < result.taaze.count {
-                book = result.taaze[row]
-            }
-        case .readmoo:
-            if row < result.readmoo.count {
-                book = result.readmoo[row]
-            }
-        case .books:
-            if row < result.booksCompany.count {
-                book = result.booksCompany[row]
-            }
-        case .kobo:
-            if row < result.kobo.count {
-                book = result.kobo[row]
+        if let viewState = resultStates[ebookProvider] {
+            switch viewState {
+            case .collapsed:
+                if row == 1 {
+                    cell.type = .expand
+                    return cell
+                }
+            case .expanded:
+                if row == result.count(of: ebookProvider) {
+                    cell.type = .collapse
+                    return cell
+                }
+            case .noResult:
+                cell.type = .noResult
+                return cell
+            default:
+                cell.type = .book
             }
         }
-        if let book = book {
-            cell.textLabel?.text = book.title
-            cell.detailTextLabel?.text = String(format: "%.0f %@", book.price, book.priceCurrency)
-            if let url = URL(string: book.thumbnail) {
-                let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, urlResponse, error) in
-                    if let error = error {
-                        print(error)
-                        return
-                    }
-                    guard let data = data else {
-                        return
-                    }
-                    let image = UIImage(data: data)
-                    DispatchQueue.main.async {
-                        cell.imageView?.image = image
-                        cell.setNeedsLayout()
-                    }
-                })
-                task.resume()
-            }
+        if !(row < result.count(of: ebookProvider)) {
+            assertionFailure()
+            return cell
+        }
+        let book : YuerEbookResult.Book
+        switch ebookProvider {
+        case .taaze:
+            book = result.taaze[row]
+        case .readmoo:
+            book = result.readmoo[row]
+        case .books:
+            book = result.booksCompany[row]
+        case .kobo:
+            book = result.kobo[row]
+        }
+        cell.textLabel?.text = book.title
+        cell.detailTextLabel?.text = String(format: "%.0f %@", book.price, book.priceCurrency)
+        if let url = URL(string: book.thumbnail) {
+            let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, urlResponse, error) in
+                if let error = error {
+                    print(error)
+                    return
+                }
+                guard let data = data else {
+                    return
+                }
+                let image = UIImage(data: data)
+                DispatchQueue.main.async {
+                    cell.imageView?.image = image
+                    cell.setNeedsLayout()
+                }
+            })
+            task.resume()
         }
         return cell
     }
 }
 
+// MARK: - UITableViewDelegate
+
 extension YuerManager : UITableViewDelegate {
+
+    // Note: we don't use estimatedHeightForRowAt
+    // because we can't unify image size of different EbookProvider
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        guard let ebookProvider = EbookProvider(rawValue: indexPath.section) else {
+            assertionFailure()
+            return 0
+        }
+        let row = indexPath.row
+        if let viewState = resultStates[ebookProvider] {
+            switch viewState {
+            case .collapsed:
+                if row == 1 {
+                    return 44.0
+                }
+            case .expanded:
+                guard let result = result else {
+                    assertionFailure()
+                    return 0
+                }
+                if row == result.count(of: ebookProvider) {
+                    return 44.0
+                }
+            default:
+                break
+            }
+        }
+        return 100.0
+    }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
@@ -177,26 +306,39 @@ extension YuerManager : UITableViewDelegate {
             return
         }
         let row = indexPath.row
-        var book : YuerEbookResult.Book? = nil
-        switch ebookProvider {
-        case .taaze:
-            if row < result.taaze.count {
-                book = result.taaze[row]
-            }
-        case .readmoo:
-            if row < result.readmoo.count {
-                book = result.readmoo[row]
-            }
-        case .books:
-            if row < result.booksCompany.count {
-                book = result.booksCompany[row]
-            }
-        case .kobo:
-            if row < result.kobo.count {
-                book = result.kobo[row]
+        if let viewState = resultStates[ebookProvider] {
+            switch viewState {
+            case .collapsed:
+                if row == 1 {
+                    resultStates[ebookProvider] = .expanded
+                    tableView.reloadData()
+                    return
+                }
+            case .expanded:
+                if row == result.count(of: ebookProvider) {
+                    resultStates[ebookProvider] = .collapsed
+                    tableView.reloadData()
+                    return
+                }
+            default:
+                break
             }
         }
-        guard let urlString = book?.link, let url = URL(string: urlString) else {
+        if !(row < result.count(of: ebookProvider)) {
+            assertionFailure()
+        }
+        let book : YuerEbookResult.Book
+        switch ebookProvider {
+        case .taaze:
+            book = result.taaze[row]
+        case .readmoo:
+            book = result.readmoo[row]
+        case .books:
+            book = result.booksCompany[row]
+        case .kobo:
+            book = result.kobo[row]
+        }
+        guard let url = URL(string: book.link) else {
             return
         }
         let safariVC = SFSafariViewController(url: url)
