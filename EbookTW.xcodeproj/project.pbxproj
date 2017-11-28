@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		043AB0F91FCD283500FACF86 /* UserScriptManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043AB0F81FCD283500FACF86 /* UserScriptManager.swift */; };
+		043AB0FD1FCD285A00FACF86 /* YuerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043AB0FC1FCD285A00FACF86 /* YuerManager.swift */; };
+		043AB0FF1FCD317300FACF86 /* InitialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043AB0FE1FCD317300FACF86 /* InitialView.swift */; };
 		0485FABF1F5E97A7001E5C3D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0485FABE1F5E97A7001E5C3D /* AppDelegate.swift */; };
 		0485FAC11F5E97A7001E5C3D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0485FAC01F5E97A7001E5C3D /* ViewController.swift */; };
 		0485FAC61F5E97A7001E5C3D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0485FAC51F5E97A7001E5C3D /* Assets.xcassets */; };
@@ -15,6 +18,9 @@
 
 /* Begin PBXFileReference section */
 		0409EECE1F5FB9BB0017CF53 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
+		043AB0F81FCD283500FACF86 /* UserScriptManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserScriptManager.swift; sourceTree = "<group>"; };
+		043AB0FC1FCD285A00FACF86 /* YuerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YuerManager.swift; sourceTree = "<group>"; };
+		043AB0FE1FCD317300FACF86 /* InitialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialView.swift; sourceTree = "<group>"; };
 		0485FABB1F5E97A7001E5C3D /* EbookTW.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EbookTW.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0485FABE1F5E97A7001E5C3D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0485FAC01F5E97A7001E5C3D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -55,6 +61,9 @@
 			children = (
 				0485FABE1F5E97A7001E5C3D /* AppDelegate.swift */,
 				0485FAC01F5E97A7001E5C3D /* ViewController.swift */,
+				043AB0FE1FCD317300FACF86 /* InitialView.swift */,
+				043AB0FC1FCD285A00FACF86 /* YuerManager.swift */,
+				043AB0F81FCD283500FACF86 /* UserScriptManager.swift */,
 				0485FAC51F5E97A7001E5C3D /* Assets.xcassets */,
 				0485FAC71F5E97A7001E5C3D /* LaunchScreen.storyboard */,
 				0485FACA1F5E97A7001E5C3D /* Info.plist */,
@@ -135,7 +144,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				043AB0FD1FCD285A00FACF86 /* YuerManager.swift in Sources */,
 				0485FAC11F5E97A7001E5C3D /* ViewController.swift in Sources */,
+				043AB0F91FCD283500FACF86 /* UserScriptManager.swift in Sources */,
+				043AB0FF1FCD317300FACF86 /* InitialView.swift in Sources */,
 				0485FABF1F5E97A7001E5C3D /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -276,7 +288,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 4.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -292,7 +304,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 4.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
