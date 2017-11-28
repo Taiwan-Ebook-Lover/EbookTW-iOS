@@ -168,11 +168,6 @@ final class UserScriptManager : NSObject {
 
 // MARK: - UITableViewDataSource
 
-private enum EbookProvider : Int {
-    case taaze, readmoo, kobo, books
-    static let count = 4
-}
-
 extension UserScriptManager : UITableViewDataSource {
 
     func numberOfSections(in tableView: UITableView) -> Int {

@@ -9,6 +9,11 @@
 import UIKit
 import SafariServices
 
+enum EbookProvider : Int {
+    case taaze, readmoo, kobo, books
+    static let count = 4
+}
+
 enum ViewControllerType {
     case initial
     case yuer(keyword: String)
@@ -27,6 +32,16 @@ final class ViewController: UIViewController {
                     NSLayoutConstraint.constraints(withVisualFormat: "H:|[initialView]|", options: [], metrics: nil, views: ["initialView": initialView]) +
                     NSLayoutConstraint.constraints(withVisualFormat: "V:|[initialView]|", options: [], metrics: nil, views: ["initialView": initialView])
                 )
+            case .yuer(keyword: let keyword):
+                tableView.isHidden = false
+                if initialView.superview != nil {
+                    initialView.removeFromSuperview()
+                }
+                tableView.dataSource = yuerManager
+                tableView.delegate = yuerManager
+                tableView.backgroundColor = UIColor.etw_tintColor.withAlphaComponent(0.95)
+                tableView.rowHeight = 100.0
+                yuerManager.searchEbook(keyword: keyword)
             case .userScript(keyword: let keyword):
                 tableView.isHidden = false
                 if initialView.superview != nil {
@@ -37,14 +52,17 @@ final class ViewController: UIViewController {
                 tableView.backgroundColor = UIColor.etw_tintColor.withAlphaComponent(0.95)
                 tableView.rowHeight = 200.0
                 userScriptManager.searchEbook(keyword: keyword)
-            default:
-                break
             }
         }
     }
     private let tableView = UITableView(frame: CGRect.zero, style: .plain)
     private let initialView = InitialView()
-    private let userScriptManager = UserScriptManager()
+    private lazy var userScriptManager : UserScriptManager = {
+        return UserScriptManager()
+    }()
+    private lazy var yuerManager : YuerManager = {
+       return YuerManager(tableView: tableView)
+    }()
 
     fileprivate var searchBarKeyword = String()  // for recovering when pressing cancel button
     private let searchBar = UISearchBar()
@@ -59,7 +77,8 @@ final class ViewController: UIViewController {
             NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: [], metrics: nil, views: ["tableView": tableView])
         )
 
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "ebookTWCell")
+        tableView.keyboardDismissMode = .interactive
+        tableView.register(YuerEbookTableViewCell.self, forCellReuseIdentifier: YuerEbookTableViewCell.cellReuseIdentifier)
 
         searchBar.placeholder = "輸入書名 / ISBN"
         searchBar.autocorrectionType = .yes
@@ -83,7 +102,7 @@ final class ViewController: UIViewController {
     func didTapSearchButton() {
         if let keyword = searchBar.text {
             self.searchBarKeyword = keyword
-            viewType = .userScript(keyword: keyword)
+            viewType = .yuer(keyword: keyword)
         }
         searchBar.resignFirstResponder()    // must do after self.keyword is set
     }
