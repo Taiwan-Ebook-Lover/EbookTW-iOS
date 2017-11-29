@@ -302,26 +302,52 @@ extension YuerManager : UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        let section = indexPath.section
+        let row = indexPath.row
         guard let result = result, let ebookProvider = EbookProvider(rawValue: indexPath.section) else {
             return
         }
-        let row = indexPath.row
         if let viewState = resultStates[ebookProvider] {
             switch viewState {
             case .collapsed:
                 if row == 1 {
                     resultStates[ebookProvider] = .expanded
-                    tableView.reloadData()
+                    var insertIndexPaths = [IndexPath]()
+                    for rowIndex in 1...result.count(of: ebookProvider) {
+                        insertIndexPaths.append(IndexPath(row: rowIndex, section: section))
+                    }
+                    // expanding
+                    tableView.beginUpdates()
+                    tableView.deleteRows(at: [IndexPath(row: 1, section: section)], with: .fade)
+                    tableView.insertRows(at: insertIndexPaths, with: .fade)
+                    tableView.endUpdates()
                     return
                 }
             case .expanded:
                 if row == result.count(of: ebookProvider) {
-                    resultStates[ebookProvider] = .collapsed
-                    tableView.reloadData()
+                    self.resultStates[ebookProvider] = .collapsed
+                    var deleteIndexPaths = [IndexPath]()
+                    for rowIndex in 1...result.count(of: ebookProvider) {
+                        deleteIndexPaths.append(IndexPath(row: rowIndex, section: section))
+                    }
+                    // collapsing
+                    var willScrollToRow = false
+                    if let indexPathsForVisibleRows = tableView.indexPathsForVisibleRows {
+                        if !(indexPathsForVisibleRows.contains(IndexPath(row: 0, section: section))) {
+                            willScrollToRow = true
+                        }
+                    }
+                    tableView.beginUpdates()
+                    tableView.deleteRows(at: deleteIndexPaths, with: .fade)
+                    tableView.insertRows(at: [IndexPath(row: 1, section: section)], with: .fade)
+                    tableView.endUpdates()
+                    if willScrollToRow {
+                        tableView.scrollToRow(at: IndexPath(row: 0, section: section), at: .top, animated: false)
+                    }
                     return
                 }
             default:
-                break
+                break   // continue to show book link below
             }
         }
         if !(row < result.count(of: ebookProvider)) {
