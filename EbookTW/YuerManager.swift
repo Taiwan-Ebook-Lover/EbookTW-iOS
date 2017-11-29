@@ -309,6 +309,8 @@ extension YuerManager : UITableViewDelegate {
         }
         if let viewState = resultStates[ebookProvider] {
             switch viewState {
+            case .noResult:
+                return
             case .collapsed:
                 if row == 1 {
                     resultStates[ebookProvider] = .expanded
