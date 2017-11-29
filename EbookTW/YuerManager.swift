@@ -74,6 +74,7 @@ final class YuerEbookTableViewCell : UITableViewCell {
     let bookTitleLabel = UILabel()
     let bookPriceLabel = UILabel()
     let bookThumbImageView = UIImageView()
+    var bookThumbImageLink : String?
     private let centerTextLabel = UILabel()
 
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
@@ -105,6 +106,7 @@ final class YuerEbookTableViewCell : UITableViewCell {
         bookTitleLabel.text = nil
         bookPriceLabel.text = nil
         bookThumbImageView.image = nil
+        bookThumbImageLink = nil
         centerTextLabel.text = nil
     }
 }
@@ -236,7 +238,7 @@ extension YuerManager : UITableViewDataSource {
                 cell.type = .noResult
                 return cell
             default:
-                cell.type = .book
+                cell.type = .book   // continue to show book details below
             }
         }
         if !(row < result.count(of: ebookProvider)) {
@@ -256,6 +258,7 @@ extension YuerManager : UITableViewDataSource {
         }
         cell.bookTitleLabel.text = book.title
         cell.bookPriceLabel.text = String(format: "%.0f %@", book.price, book.priceCurrency)
+        cell.bookThumbImageLink = book.thumbnail
         if let url = URL(string: book.thumbnail) {
             let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, urlResponse, error) in
                 if let error = error {
@@ -267,7 +270,11 @@ extension YuerManager : UITableViewDataSource {
                 }
                 let image = UIImage(data: data)
                 DispatchQueue.main.async {
-                    cell.bookThumbImageView.image = image
+                    if let bookThumbImageLink = cell.bookThumbImageLink {
+                        if bookThumbImageLink == book.thumbnail {
+                            cell.bookThumbImageView.image = image
+                        }
+                    }
                 }
             })
             task.resume()
