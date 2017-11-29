@@ -40,6 +40,11 @@ private struct YuerEbookResult : Codable {
     }
 }
 
+private struct YuerEbookResultError : Codable {
+
+    let messages : String
+}
+
 private enum EbookProviderViewState {
     case loading, collapsed, expanded, oneResult, noResult
 }
@@ -124,7 +129,7 @@ final class YuerManager : NSObject {
         self.tableView = tableView
     }
 
-    func searchEbook(keyword: String) {
+    func searchEbook(keyword: String, errorHandler: @escaping (String) -> Void) {
         guard let keywordEncoded = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
             let url = URL(string: "https://ebook.yuer.tw/search?q=" + keywordEncoded) else {
             assertionFailure()
@@ -135,7 +140,7 @@ final class YuerManager : NSObject {
         self.tableView?.reloadData()
         let task = URLSession.shared.dataTask(with: url) { (data, urlResponse, error) in
             if let error = error {
-                print(error)
+                errorHandler(error.localizedDescription)
                 return
             }
             guard let data = data else {
@@ -143,6 +148,9 @@ final class YuerManager : NSObject {
             }
             let jsonDecoder = JSONDecoder()
             guard let ebookResult = try? jsonDecoder.decode(YuerEbookResult.self, from: data) else {
+                if let error = try? jsonDecoder.decode(YuerEbookResultError.self, from: data) {
+                    errorHandler(error.messages)
+                }
                 return
             }
             self.result = ebookResult

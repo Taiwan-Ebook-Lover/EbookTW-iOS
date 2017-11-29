@@ -22,6 +22,7 @@ enum ViewControllerType {
 
 final class ViewController: UIViewController {
 
+    private var viewTypeIsDefaultYuer = true
     private var viewType : ViewControllerType = .initial {
         didSet {
             switch viewType {
@@ -40,7 +41,19 @@ final class ViewController: UIViewController {
                 tableView.dataSource = yuerManager
                 tableView.delegate = yuerManager
                 tableView.backgroundColor = UIColor.etw_tintColor.withAlphaComponent(0.95)
-                yuerManager.searchEbook(keyword: keyword)
+                yuerManager.searchEbook(keyword: keyword, errorHandler: { (errorString) in
+                    let alert = UIAlertController(title: nil, message: "\(errorString)\n您是否要暫時改用舊版模式？", preferredStyle: .alert)
+                    let switchAction = UIAlertAction(title: "改用舊版模式", style: .default, handler: { (alertAction) in
+                        self.viewTypeIsDefaultYuer = false
+                        self.viewType = .userScript(keyword: keyword)
+                    })
+                    let cancelAction = UIAlertAction(title: "取消", style: .cancel, handler: { (alertAction) in
+                        self.viewType = .initial
+                    })
+                    alert.addAction(switchAction)
+                    alert.addAction(cancelAction)
+                    self.present(alert, animated: true, completion: nil)
+                })
             case .userScript(keyword: let keyword):
                 tableView.isHidden = false
                 if initialView.superview != nil {
@@ -101,7 +114,11 @@ final class ViewController: UIViewController {
     func didTapSearchButton() {
         if let keyword = searchBar.text {
             self.searchBarKeyword = keyword
-            viewType = .yuer(keyword: keyword)
+            if viewTypeIsDefaultYuer {
+                viewType = .yuer(keyword: keyword)
+            } else {
+                viewType = .userScript(keyword: keyword)
+            }
         }
         searchBar.resignFirstResponder()    // must do after self.keyword is set
     }
