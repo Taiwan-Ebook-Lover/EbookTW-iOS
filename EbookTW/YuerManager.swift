@@ -71,16 +71,26 @@ final class YuerEbookTableViewCell : UITableViewCell {
             }
         }
     }
+    let bookTitleLabel = UILabel()
+    let bookPriceLabel = UILabel()
+    let bookThumbImageView = UIImageView()
     private let centerTextLabel = UILabel()
 
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
         super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
-        textLabel?.numberOfLines = 2
-        imageView?.contentMode = .scaleAspectFit
+        bookTitleLabel.numberOfLines = 2
+        bookTitleLabel.font = UIFont.preferredFont(forTextStyle: .headline)
+        bookPriceLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        bookThumbImageView.contentMode = .scaleAspectFit
         centerTextLabel.textAlignment = .center
         centerTextLabel.font = UIFont.preferredFont(forTextStyle: .headline)
-        contentView.etw_add(subViews: [centerTextLabel])
-        NSLayoutConstraint.activate([
+        contentView.etw_add(subViews: [bookTitleLabel, bookPriceLabel, bookThumbImageView, centerTextLabel])
+        let viewsDict : [String: UIView] = ["bookTitleLabel": bookTitleLabel, "bookPriceLabel": bookPriceLabel, "bookThumbImageView": bookThumbImageView]
+        NSLayoutConstraint.activate(
+            NSLayoutConstraint.constraints(withVisualFormat: "V:|[bookThumbImageView]|", options: [], metrics: nil, views: viewsDict) +
+            NSLayoutConstraint.constraints(withVisualFormat: "V:|-[bookTitleLabel]-[bookPriceLabel]-|", options: .alignAllTrailing, metrics: nil, views: viewsDict) +
+            NSLayoutConstraint.constraints(withVisualFormat: "H:|-[bookThumbImageView(90)]-[bookTitleLabel]-|", options: [], metrics: nil, views: viewsDict) +
+            [
             centerTextLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             centerTextLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
             ])
@@ -92,9 +102,9 @@ final class YuerEbookTableViewCell : UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        imageView?.image = nil
-        textLabel?.text = nil
-        detailTextLabel?.text = nil
+        bookTitleLabel.text = nil
+        bookPriceLabel.text = nil
+        bookThumbImageView.image = nil
         centerTextLabel.text = nil
     }
 }
@@ -244,8 +254,8 @@ extension YuerManager : UITableViewDataSource {
         case .kobo:
             book = result.kobo[row]
         }
-        cell.textLabel?.text = book.title
-        cell.detailTextLabel?.text = String(format: "%.0f %@", book.price, book.priceCurrency)
+        cell.bookTitleLabel.text = book.title
+        cell.bookPriceLabel.text = String(format: "%.0f %@", book.price, book.priceCurrency)
         if let url = URL(string: book.thumbnail) {
             let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, urlResponse, error) in
                 if let error = error {
@@ -257,8 +267,7 @@ extension YuerManager : UITableViewDataSource {
                 }
                 let image = UIImage(data: data)
                 DispatchQueue.main.async {
-                    cell.imageView?.image = image
-                    cell.setNeedsLayout()
+                    cell.bookThumbImageView.image = image
                 }
             })
             task.resume()
