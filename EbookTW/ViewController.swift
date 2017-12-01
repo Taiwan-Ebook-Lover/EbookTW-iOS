@@ -42,15 +42,29 @@ final class ViewController: UIViewController {
                 tableView.delegate = yuerManager
                 tableView.backgroundColor = UIColor.etw_tintColor.withAlphaComponent(0.95)
                 yuerManager.searchEbook(keyword: keyword, errorHandler: { (errorString) in
-                    let alert = UIAlertController(title: nil, message: "\(errorString)\n您是否要暫時改用舊版模式？", preferredStyle: .alert)
+                    let errorMessage : String = {
+                        if UIDevice.current.userInterfaceIdiom == .phone {
+                            return "\(errorString)\n您是否要暫時改用舊版模式？"
+                        } else {
+                            return "\(errorString)\n您是否要重試？"
+                        }
+                    }()
+                    let alert = UIAlertController(title: nil, message: errorMessage, preferredStyle: .alert)
                     let switchAction = UIAlertAction(title: "改用舊版模式", style: .default, handler: { (alertAction) in
                         self.viewTypeIsDefaultYuer = false
                         self.viewType = .userScript(keyword: keyword)
                     })
+                    let retryAction = UIAlertAction(title: "重試", style: .default, handler: { (alertAction) in
+                        self.viewType = .yuer(keyword: keyword)
+                    })
                     let cancelAction = UIAlertAction(title: "取消", style: .cancel, handler: { (alertAction) in
                         self.viewType = .initial
                     })
-                    alert.addAction(switchAction)
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        alert.addAction(switchAction)
+                    } else {
+                        alert.addAction(retryAction)
+                    }
                     alert.addAction(cancelAction)
                     self.present(alert, animated: true, completion: nil)
                 })

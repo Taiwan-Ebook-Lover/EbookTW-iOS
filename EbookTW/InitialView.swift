@@ -17,6 +17,7 @@ final class InitialView : UIScrollView {
 
         backgroundColor = .white
         alwaysBounceVertical = true
+        keyboardDismissMode = .interactive
 
         label.numberOfLines = 0
         label.font = UIFont.preferredFont(forTextStyle: .headline)
