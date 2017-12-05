@@ -44,9 +44,9 @@ final class ViewController: UIViewController {
                 yuerManager.searchEbook(keyword: keyword, errorHandler: { (errorString) in
                     let errorMessage : String = {
                         if UIDevice.current.userInterfaceIdiom == .phone {
-                            return "\(errorString)\n您是否要暫時改用舊版模式？"
+                            return "「\(errorString)」\n您是否要暫時改用舊版模式？"
                         } else {
-                            return "\(errorString)\n您是否要重試？"
+                            return "「\(errorString)」\n您是否要重試？"
                         }
                     }()
                     let alert = UIAlertController(title: nil, message: errorMessage, preferredStyle: .alert)

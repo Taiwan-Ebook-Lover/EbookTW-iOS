@@ -42,7 +42,7 @@ private struct YuerEbookResult : Codable {
 
 private struct YuerEbookResultError : Codable {
 
-    let messages : String
+    let message : String
 }
 
 private enum EbookProviderViewState {
@@ -147,10 +147,18 @@ final class YuerManager : NSObject {
                 return
             }
             let jsonDecoder = JSONDecoder()
-            guard let ebookResult = try? jsonDecoder.decode(YuerEbookResult.self, from: data) else {
-                if let error = try? jsonDecoder.decode(YuerEbookResultError.self, from: data) {
-                    errorHandler(error.messages)
+            var yuerEbookResult : YuerEbookResult? = nil
+            do {
+                yuerEbookResult = try jsonDecoder.decode(YuerEbookResult.self, from: data)
+            } catch let error {
+                print(error)
+                if let ebookResultError = try? jsonDecoder.decode(YuerEbookResultError.self, from: data) {
+                    errorHandler(ebookResultError.message)
+                    return
                 }
+            }
+            guard let ebookResult = yuerEbookResult else {
+                errorHandler("搜尋『\(keyword)』時出現未知的錯誤。麻煩回報給開發者，謝謝！")
                 return
             }
             self.result = ebookResult
