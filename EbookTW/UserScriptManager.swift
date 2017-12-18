@@ -110,6 +110,8 @@ final class UserScriptManager : NSObject {
                     webview = webviewBooks
                 case .kobo:
                     webview = webviewKobo
+                default:
+                    continue    // legacy mode doesn't support other ebook stores
                 }
             } else {
                 assertionFailure()
@@ -151,6 +153,8 @@ final class UserScriptManager : NSObject {
                     url = urlBooks
                 case .kobo:
                     url = urlKobo
+                default:
+                    continue
                 }
                 urls.append(url)
             } else {
@@ -171,7 +175,7 @@ final class UserScriptManager : NSObject {
 extension UserScriptManager : UITableViewDataSource {
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        return EbookProvider.count
+        return 4
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -189,10 +193,12 @@ extension UserScriptManager : UITableViewDataSource {
                 return "博客來"
             case .kobo:
                 return "Kobo"
+            default:
+                break
             }
         }
         assertionFailure()
-        return String()
+        return nil
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

@@ -28,6 +28,9 @@ final class InitialView : UIScrollView {
         Readmoo
         Kobo
         博客來
+        BookWalker
+        Google Play 圖書
+        Pubu
         """
 
         etw_add(subViews: [label])

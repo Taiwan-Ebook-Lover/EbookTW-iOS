@@ -10,8 +10,8 @@ import UIKit
 import SafariServices
 
 enum EbookProvider : Int {
-    case taaze, readmoo, kobo, books
-    static let count = 4
+    case taaze, readmoo, kobo, books, bookwalker, googleplay, pubu
+    static let count = 7
 }
 
 enum ViewControllerType {

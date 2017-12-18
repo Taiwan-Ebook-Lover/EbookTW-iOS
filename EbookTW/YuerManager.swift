@@ -15,6 +15,9 @@ private struct YuerEbookResult : Codable {
     let readmoo : [Book]
     let kobo : [Book]
     let taaze : [Book]
+    let bookWalker : [Book]
+    let playStore : [Book]
+    let pubu : [Book]
 
     struct Book : Codable {
         let thumbnail : String
@@ -35,6 +38,12 @@ private struct YuerEbookResult : Codable {
             count = booksCompany.count
         case .kobo:
             count = kobo.count
+        case .googleplay:
+            count = playStore.count
+        case .bookwalker:
+            count = bookWalker.count
+        case .pubu:
+            count = pubu.count
         }
         return count
     }
@@ -122,7 +131,7 @@ final class YuerManager : NSObject {
 
     private weak var tableView : UITableView?
     private var result : YuerEbookResult? = nil
-    private var resultStates : [EbookProvider: EbookProviderViewState] = [.taaze: .loading, .readmoo: .loading, .kobo: .loading, .books: .loading]
+    private var resultStates : [EbookProvider: EbookProviderViewState] = [.taaze: .loading, .readmoo: .loading, .kobo: .loading, .books: .loading, .bookwalker: .loading, .googleplay: .loading, .pubu: .loading]
 
     init(tableView: UITableView) {
         super.init()
@@ -221,6 +230,12 @@ extension YuerManager : UITableViewDataSource {
                 return "博客來"
             case .kobo:
                 return "Kobo"
+            case .bookwalker:
+                return "BookWalker"
+            case .googleplay:
+                return "Google Play 圖書"
+            case .pubu:
+                return "Pubu"
             }
         }
         assertionFailure()
@@ -271,6 +286,12 @@ extension YuerManager : UITableViewDataSource {
             book = result.booksCompany[row]
         case .kobo:
             book = result.kobo[row]
+        case .bookwalker:
+            book = result.bookWalker[row]
+        case .googleplay:
+            book = result.playStore[row]
+        case .pubu:
+            book = result.pubu[row]
         }
         cell.bookTitleLabel.text = book.title
         cell.bookPriceLabel.text = String(format: "%.0f %@", book.price, book.priceCurrency)
@@ -397,6 +418,12 @@ extension YuerManager : UITableViewDelegate {
             book = result.booksCompany[row]
         case .kobo:
             book = result.kobo[row]
+        case .bookwalker:
+            book = result.bookWalker[row]
+        case .googleplay:
+            book = result.playStore[row]
+        case .pubu:
+            book = result.pubu[row]
         }
         guard let url = URL(string: book.link) else {
             return
