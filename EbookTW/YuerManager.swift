@@ -178,15 +178,30 @@ final class YuerManager : NSObject {
             var yuerEbookResult : YuerEbookResult? = nil
             do {
                 yuerEbookResult = try jsonDecoder.decode(YuerEbookResult.self, from: data)
-            } catch let error {
-                print(error)
+            } catch let error as DecodingError {
                 if let ebookResultError = try? jsonDecoder.decode(YuerEbookResultError.self, from: data) {
                     errorHandler(ebookResultError.message)
                     return
                 }
+                // From Settings.bundle
+                let isDebugMode = UserDefaults.standard.bool(forKey: "debugMode")
+                if isDebugMode {
+                    switch error {
+                    case .dataCorrupted(let context):
+                        errorHandler(context.debugDescription)
+                    case .keyNotFound(_, let context):
+                        errorHandler(context.debugDescription)
+                    case .typeMismatch(_, let context):
+                        errorHandler(context.debugDescription)
+                    case .valueNotFound(_, let context):
+                        errorHandler(context.debugDescription)
+                    }
+                }
+            } catch let error {
+                print(error)
             }
             guard let ebookResult = yuerEbookResult else {
-                errorHandler("搜尋『\(keyword)』時出現未知的錯誤。麻煩回報給開發者，謝謝！")
+                errorHandler("搜尋「\(keyword)」時出現錯誤。麻煩回報給開發者，謝謝！")
                 return
             }
             self.result = ebookResult
