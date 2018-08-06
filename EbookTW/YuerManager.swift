@@ -133,6 +133,22 @@ final class YuerManager : NSObject {
     private var result : YuerEbookResult? = nil
     private var resultStates : [EbookProvider: EbookProviderViewState] = [.taaze: .loading, .readmoo: .loading, .kobo: .loading, .books: .loading, .bookwalker: .loading, .googleplay: .loading, .pubu: .loading]
 
+    private static let session : URLSession = {
+        let config = URLSessionConfiguration.default
+        let device : String
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            device = "iPad"
+        } else {
+            device = "iPhone"
+        }
+        var version = UIDevice.current.systemVersion
+        version = version.replacingOccurrences(of: ".", with: "_")
+        // See: ua-parser-js http://faisalman.github.io/ua-parser-js/
+        config.httpAdditionalHeaders = ["User-Agent": "(\(device); iPhone OS \(version) like Mac OS X)"]
+        let session = URLSession(configuration: config)
+        return session
+    }()
+
     init(tableView: UITableView) {
         super.init()
         self.tableView = tableView
@@ -147,7 +163,7 @@ final class YuerManager : NSObject {
         self.result = nil
         self.resultStates = [.taaze: .loading, .readmoo: .loading, .kobo: .loading, .books: .loading]
         self.tableView?.reloadData()
-        let task = URLSession.shared.dataTask(with: url) { (data, urlResponse, error) in
+        let task = YuerManager.session.dataTask(with: url) { (data, urlResponse, error) in
             if let error = error {
                 errorHandler(error.localizedDescription)
                 return
