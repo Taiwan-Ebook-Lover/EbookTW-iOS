@@ -31,6 +31,7 @@ final class InitialView : UIScrollView {
         BookWalker
         Google Play 圖書
         Pubu
+        HyRead
         """
 
         etw_add(subViews: [label])
