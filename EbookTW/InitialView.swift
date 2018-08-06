@@ -24,9 +24,9 @@ final class InitialView : UIScrollView {
         label.textColor = .gray
         label.textAlignment = .center
         label.text = """
-        TAAZE
         Readmoo
         Kobo
+        TAAZE
         博客來
         BookWalker
         Google Play 圖書

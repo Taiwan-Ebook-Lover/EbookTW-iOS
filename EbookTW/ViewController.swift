@@ -10,7 +10,7 @@ import UIKit
 import SafariServices
 
 enum EbookProvider : Int {
-    case taaze, readmoo, kobo, books, bookwalker, googleplay, pubu
+    case readmoo, kobo, taaze, books, bookwalker, googleplay, pubu
     static let count = 7
 }
 
