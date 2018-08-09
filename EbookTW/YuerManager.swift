@@ -144,10 +144,12 @@ final class YuerManager : NSObject {
         } else {
             device = "iPhone"
         }
-        var version = UIDevice.current.systemVersion
-        version = version.replacingOccurrences(of: ".", with: "_")
+        var systemVersion = UIDevice.current.systemVersion
+        systemVersion = systemVersion.replacingOccurrences(of: ".", with: "_")
         // See: ua-parser-js http://faisalman.github.io/ua-parser-js/
-        config.httpAdditionalHeaders = ["User-Agent": "(\(device); iPhone OS \(version) like Mac OS X)"]
+        if let infoDictionary = Bundle.main.infoDictionary, let version = infoDictionary["CFBundleShortVersionString"] {
+            config.httpAdditionalHeaders = ["User-Agent": "EbookTW/\(version) (\(device); iPhone OS \(systemVersion) like Mac OS X)"]
+        }
         let session = URLSession(configuration: config)
         return session
     }()
