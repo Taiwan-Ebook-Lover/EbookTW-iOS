@@ -394,7 +394,6 @@ extension YuerManager : UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
         let section = indexPath.section
         let row = indexPath.row
         guard let result = result, let ebookProvider = EbookProvider(rawValue: indexPath.section) else {
@@ -480,6 +479,8 @@ extension YuerManager : UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int){
-        view.tintColor = UIColor(red:0.63, green:0.84, blue:0.81, alpha:1.0)   // #A0D5CE
+        if let header = view as? UITableViewHeaderFooterView {
+            header.textLabel?.textColor = .black
+        }
     }
 }

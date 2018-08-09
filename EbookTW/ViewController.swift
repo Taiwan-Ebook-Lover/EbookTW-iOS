@@ -40,7 +40,6 @@ final class ViewController: UIViewController {
                 }
                 tableView.dataSource = yuerManager
                 tableView.delegate = yuerManager
-                tableView.backgroundColor = UIColor.etw_tintColor.withAlphaComponent(0.95)
                 yuerManager.searchEbook(keyword: keyword, errorHandler: { (errorString) in
                     let errorMessage : String = {
                         if UIDevice.current.userInterfaceIdiom == .phone {
@@ -81,7 +80,7 @@ final class ViewController: UIViewController {
             }
         }
     }
-    private let tableView = UITableView(frame: CGRect.zero, style: .plain)
+    private let tableView = UITableView(frame: CGRect.zero, style: .grouped)
     private let initialView = InitialView()
     private lazy var userScriptManager : UserScriptManager = {
         return UserScriptManager()
@@ -103,6 +102,12 @@ final class ViewController: UIViewController {
             NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: [], metrics: nil, views: ["tableView": tableView])
         )
 
+        // A hacky fix for weird top padding. Take 18.0 to be consistent with other section headers.
+        // See: https://stackoverflow.com/a/22185534/3796488
+        let tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 18.0))
+        tableView.tableHeaderView = tableHeaderView
+
+        tableView.sectionHeaderHeight = 30.0
         tableView.keyboardDismissMode = .interactive
         tableView.register(YuerEbookTableViewCell.self, forCellReuseIdentifier: YuerEbookTableViewCell.cellReuseIdentifier)
 
@@ -118,6 +123,15 @@ final class ViewController: UIViewController {
 //        qrCodeButton.addTarget(self, action: #selector(didTapSearchButton), for: .touchUpInside)
 //        searchBar.inputAccessoryView = qrCodeButton
         navigationItem.titleView = searchBar
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        // like clearsSelectionOnViewWillAppear
+        if let selectedRow = tableView.indexPathForSelectedRow {
+            tableView.deselectRow(at: selectedRow, animated: true)
+        }
     }
 
     override func didReceiveMemoryWarning() {
