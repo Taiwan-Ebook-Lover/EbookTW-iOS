@@ -74,7 +74,6 @@ final class ViewController: UIViewController {
                 }
                 tableView.dataSource = userScriptManager
                 tableView.delegate = userScriptManager
-                tableView.backgroundColor = UIColor.etw_tintColor.withAlphaComponent(0.95)
                 tableView.rowHeight = 200.0
                 userScriptManager.searchEbook(keyword: keyword)
             }
