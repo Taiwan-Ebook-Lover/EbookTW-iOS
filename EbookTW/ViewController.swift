@@ -8,6 +8,7 @@
 
 import UIKit
 import SafariServices
+import StoreKit
 
 enum EbookProvider : Int {
     case readmoo, kobo, taaze, books, bookwalker, googleplay, pubu, hyread
@@ -18,6 +19,37 @@ enum ViewControllerType {
     case initial
     case yuer(keyword: String)
     case userScript(keyword: String)
+}
+
+struct StoreReview {
+    static let kSearchCount = "searchCount"
+
+    private static let idleTime : TimeInterval = 10.0
+    private static let requestCondition : Int = 20  // every 20 times of search counts will do requestReview()
+    static var didReachRequestReviewCondition : Bool {
+        let searchCount = UserDefaults.standard.integer(forKey: StoreReview.kSearchCount)
+        if searchCount > 0 && searchCount % requestCondition == 0 {
+            return true
+        }
+        return false
+    }
+
+    private static var idleTimer : Timer? = nil
+
+    static func setTimer() {
+        if #available(iOS 10.3, *) {
+            idleTimer = Timer.scheduledTimer(withTimeInterval: idleTime, repeats: false, block: { (timer) in
+                SKStoreReviewController.requestReview()
+            })
+        }
+    }
+
+    static func resetTimer() {
+        if let idleTimer = idleTimer, idleTimer.isValid {
+            idleTimer.invalidate()
+            setTimer()
+        }
+    }
 }
 
 final class ViewController: UIViewController {
@@ -130,6 +162,7 @@ final class ViewController: UIViewController {
         // like clearsSelectionOnViewWillAppear
         if let selectedRow = tableView.indexPathForSelectedRow {
             tableView.deselectRow(at: selectedRow, animated: true)
+            StoreReview.resetTimer()
         }
     }
 
@@ -148,6 +181,14 @@ final class ViewController: UIViewController {
             }
         }
         searchBar.resignFirstResponder()    // must do after self.keyword is set
+
+        let oldSearchCount = UserDefaults.standard.integer(forKey: StoreReview.kSearchCount)
+        let newSearchCount = oldSearchCount + 1
+        UserDefaults.standard.set(newSearchCount, forKey: StoreReview.kSearchCount)
+
+        if StoreReview.didReachRequestReviewCondition {
+            StoreReview.setTimer()
+        }
     }
 }
 

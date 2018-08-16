@@ -26,6 +26,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UINavigationBar.appearance().barTintColor = UIColor.etw_tintColor
         UINavigationBar.appearance().titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white]
         UIBarButtonItem.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).tintColor = .white   // searchBar cancel button
+
+        UserDefaults.standard.register(defaults: [StoreReview.kSearchCount: 0])
+
         return true
     }
 

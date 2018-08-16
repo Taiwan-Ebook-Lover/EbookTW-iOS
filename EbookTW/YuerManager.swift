@@ -394,6 +394,7 @@ extension YuerManager : UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        StoreReview.resetTimer()
         let section = indexPath.section
         let row = indexPath.row
         guard let result = result, let ebookProvider = EbookProvider(rawValue: indexPath.section) else {
@@ -482,5 +483,14 @@ extension YuerManager : UITableViewDelegate {
         if let header = view as? UITableViewHeaderFooterView {
             header.textLabel?.textColor = .black
         }
+    }
+}
+
+// MARK: - UIScrollViewDelegate
+
+extension YuerManager : UIScrollViewDelegate {
+
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        StoreReview.resetTimer()
     }
 }
