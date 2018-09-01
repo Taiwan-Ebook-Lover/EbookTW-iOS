@@ -472,7 +472,8 @@ extension YuerManager : UITableViewDelegate {
         }
         let safariVC = SFSafariViewController(url: url)
         if #available(iOS 10.0, *) {
-            safariVC.preferredControlTintColor = UIColor.etw_tintColor
+            safariVC.preferredBarTintColor = .etw_tintColor
+            safariVC.preferredControlTintColor = .white
         }
         if let appDelegate = UIApplication.shared.delegate as? AppDelegate, let rootVc = appDelegate.window?.rootViewController {
             rootVc.present(safariVC, animated: true, completion: nil)
