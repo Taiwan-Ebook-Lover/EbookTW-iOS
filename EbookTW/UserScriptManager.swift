@@ -218,10 +218,6 @@ extension UserScriptManager : UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section < urls.count {
             let safariVC = SFSafariViewController(url: urls[indexPath.section])
-            if #available(iOS 10.0, *) {
-                safariVC.preferredBarTintColor = .etw_tintColor
-                safariVC.preferredControlTintColor = .white
-            }
             if let appDelegate = UIApplication.shared.delegate as? AppDelegate, let rootVc = appDelegate.window?.rootViewController {
                 rootVc.present(safariVC, animated: true, completion: nil)
             }
