@@ -141,6 +141,10 @@ final class ViewController: UIViewController {
         }
 
         tableView.sectionHeaderHeight = 30.0
+        // Starting in iOS 12 the default is now false.
+        // See: https://useyourloaf.com/blog/readable-width-table-views-with-ios-12/
+        tableView.cellLayoutMarginsFollowReadableWidth = true
+
         tableView.keyboardDismissMode = .interactive
         tableView.register(YuerEbookTableViewCell.self, forCellReuseIdentifier: YuerEbookTableViewCell.cellReuseIdentifier)
 
