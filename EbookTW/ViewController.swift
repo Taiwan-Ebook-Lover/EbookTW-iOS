@@ -135,8 +135,10 @@ final class ViewController: UIViewController {
 
         // A hacky fix for weird top padding. Take 18.0 to be consistent with other section headers.
         // See: https://stackoverflow.com/a/22185534/3796488
-        let tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 18.0))
-        tableView.tableHeaderView = tableHeaderView
+        if #available(iOS 11.0, *) {
+            let tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 18.0))
+            tableView.tableHeaderView = tableHeaderView
+        }
 
         tableView.sectionHeaderHeight = 30.0
         tableView.keyboardDismissMode = .interactive
