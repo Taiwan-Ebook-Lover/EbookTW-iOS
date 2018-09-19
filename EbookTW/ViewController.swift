@@ -97,7 +97,9 @@ final class ViewController: UIViewController {
                         alert.addAction(retryAction)
                     }
                     alert.addAction(cancelAction)
-                    self.present(alert, animated: true, completion: nil)
+                    DispatchQueue.main.async {
+                        self.present(alert, animated: true, completion: nil)
+                    }
                 })
             case .userScript(keyword: let keyword):
                 tableView.isHidden = false

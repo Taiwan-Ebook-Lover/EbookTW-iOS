@@ -94,7 +94,7 @@ final class YuerEbookTableViewCell : UITableViewCell {
     var bookThumbImageLink : String?
     private let centerTextLabel = UILabel()
 
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
         bookTitleLabel.numberOfLines = 2
         bookTitleLabel.font = UIFont.preferredFont(forTextStyle: .headline)
