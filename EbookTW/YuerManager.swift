@@ -173,7 +173,16 @@ final class YuerManager : NSObject {
                 errorHandler(error.localizedDescription)
                 return
             }
+            // From Settings.bundle
+            let isDebugMode = UserDefaults.standard.bool(forKey: "debugMode")
+            if isDebugMode {
+                if let httpUrlResponse = urlResponse as? HTTPURLResponse, httpUrlResponse.statusCode != 200 {
+                    errorHandler("HTTP Error \(httpUrlResponse.statusCode)")
+                    return
+                }
+            }
             guard let data = data else {
+                errorHandler("No data")
                 return
             }
             let jsonDecoder = JSONDecoder()
