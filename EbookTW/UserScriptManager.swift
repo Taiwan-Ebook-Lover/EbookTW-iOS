@@ -28,21 +28,24 @@ final class UserScriptManager : NSObject {
             zoom = 330
             width = 300
         default:
-            assertionFailure()
-            zoom = 0
-            width = 0
+            zoom = 400
+            width = 400
         }
-        let userScriptString1 = "var styleElement = document.createElement('style');" +
-            "document.documentElement.appendChild(styleElement);" +
-        "styleElement.textContent = 'div#newHeaderV001, div#top_banner, div#searchresult_tool, div.searchresult_catalg_list, div.searchresult_page_list, div#feedbackSelect, div#newFooter {display: none !important; height: 0 !important;} div#div#searchresult_tool { width: 100% !important;} body {zoom: \(zoom)% !important;} div.one {margin-left: -180px !important;} div.two {float: left !important; width: \(width)px !important;}'"
-        let userScriptString2 = "var element1 = document.getElementById('searchresult_tool');" +
-            "element1.parentElement.style.float = 'none';" +
-            "element1.parentElement.style.marginTop = '-30px';" +
-            "element1.parentElement.parentElement.style.margin = '0';" +
-            "element1.parentElement.parentElement.style.padding = '0';" +
-            "element1.nextElementSibling.style.display = 'none';" +
-            "var element2 = document.getElementById('searchresult_catalg_list');" +
-        "element1.parentElement.style.width = '0';"
+        let userScriptString1 = """
+          var styleElement = document.createElement('style');
+          document.documentElement.appendChild(styleElement);
+          styleElement.textContent = 'div#newHeaderV001, div#top_banner, div#searchresult_tool, div.searchresult_catalg_list, div.searchresult_page_list, div#feedbackSelect, div#newFooter {display: none !important; height: 0 !important;} div#div#searchresult_tool { width: 100% !important;} body {zoom: \(zoom)% !important;} div.one {margin-left: -180px !important;} div.two {float: left !important; width: \(width)px !important;}';
+        """
+        let userScriptString2 = """
+          var element1 = document.getElementById('searchresult_tool');
+          element1.parentElement.style.float = 'none';
+          element1.parentElement.style.marginTop = '-30px';
+          element1.parentElement.parentElement.style.margin = '0';
+          element1.parentElement.parentElement.style.padding = '0';
+          element1.nextElementSibling.style.display = 'none';
+          var element2 = document.getElementById('searchresult_catalg_list');
+          element1.parentElement.style.width = '0';
+        """
         let userScript1 = WKUserScript(source: userScriptString1, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         let userScript2 = WKUserScript(source: userScriptString2, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
@@ -52,11 +55,14 @@ final class UserScriptManager : NSObject {
         webview.isUserInteractionEnabled = false
         return webview
     }()
+    private var webTaazeProgressObservation : NSKeyValueObservation!
 
     private let webviewReadmoo : WKWebView = {
-        let userScriptString1 = "var styleElement = document.createElement('style');" +
-            "document.documentElement.appendChild(styleElement);" +
-        "styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-ct-quickBar, div#pagination, footer {display: none !important; height: 0 !important;} ul#main_items li:not(:first-child) {display: none !important;}'"
+        let userScriptString1 = """
+            var styleElement = document.createElement('style');
+            document.documentElement.appendChild(styleElement);
+            styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-ct-quickBar, div#pagination, footer {display: none !important; height: 0 !important;} ul#main_items li:not(:first-child) {display: none !important;}';
+        """
         // only keep div.rm-search-summary for no search result
         let userScriptString2 = "if (document.getElementById('chalkboard').clientHeight != 0) {" +
         "document.getElementsByClassName('rm-search-summary')[0].style.display = 'none' }"
@@ -69,13 +75,14 @@ final class UserScriptManager : NSObject {
         webview.isUserInteractionEnabled = false
         return webview
     }()
+    private var webReadmooProgressObservation : NSKeyValueObservation!
 
     private let webviewBooks : WKWebView = {
-        // TODO: Swift 4 includes support for multi-line string literals.
-        // https://stackoverflow.com/a/24091332/3796488
-        let userScriptString = "var styleElement = document.createElement('style');" +
-            "document.documentElement.appendChild(styleElement);" +
-        "styleElement.textContent = 'div#header, div#catbtn, div.tbar, h4.keywordlist, div.mm_031, div#footer {display: none !important; height: 0 !important;} div#content {padding: 0 !important;} ul.bd li:not(:first-child) {display: none !important;}'"
+        let userScriptString = """
+          var styleElement = document.createElement('style');
+          document.documentElement.appendChild(styleElement);
+          styleElement.textContent = 'div#header, div#catbtn, div.tbar, h4.keywordlist, div.mm_031, div#footer {display: none !important; height: 0 !important;} div#content {padding: 0 !important;} ul.bd li:not(:first-child) {display: none !important;}';
+        """
         let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
         config.userContentController.addUserScript(userScript)
@@ -83,11 +90,14 @@ final class UserScriptManager : NSObject {
         webview.isUserInteractionEnabled = false
         return webview
     }()
+    private var webBooksProgressObservation : NSKeyValueObservation!
 
     private let webviewKobo : WKWebView = {
-        let userScriptString = "var styleElement = document.createElement('style');" +
-            "document.documentElement.appendChild(styleElement);" +
-        "styleElement.textContent = 'header, div.rich-header-spacer, div.full-top, div.content-top, aside, button.add-to-cart, div.pagination, footer {display: none !important; height: 0 !important; width: 0 !important} ul.result-items li:not(:first-child) {display: none !important;}'"
+        let userScriptString = """
+          var styleElement = document.createElement('style');
+          document.documentElement.appendChild(styleElement);
+          styleElement.textContent = 'header, div.rich-header-spacer, div.full-top, div.content-top, aside, button.add-to-cart, div.pagination, footer {display: none !important; height: 0 !important; width: 0 !important} ul.result-items li:not(:first-child) {display: none !important;}';
+        """
         let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
         config.userContentController.addUserScript(userScript)
@@ -95,33 +105,60 @@ final class UserScriptManager : NSObject {
         webview.isUserInteractionEnabled = false
         return webview
     }()
+    private var webKoboProgressObservation : NSKeyValueObservation!
 
     override init() {
         for index in 0...(EbookProvider.count - 1) {
-            // TODO: add UIProgressView with iOS 11 block-based key value observing
-            var webview : WKWebView
+            var webView : WKWebView
+            let webProgressView = UIProgressView(progressViewStyle: .bar)
+            let webProgressChangeHandler : (WKWebView, NSKeyValueObservedChange<Double>) -> Void = {
+                (observed : WKWebView, change : NSKeyValueObservedChange) -> Void in
+                guard let progress = change.newValue else { return }
+                switch progress {
+                case 1.0:
+                    webProgressView.setProgress(Float(progress), animated: false)
+                    UIView.animate(withDuration: 0.2, delay: 0.3, options: .curveEaseIn, animations: {
+                        webProgressView.alpha = 0
+                    }) { (isFinished) in
+                        webProgressView.setProgress(0, animated: false)
+                    }
+                default:
+                    webProgressView.setProgress(Float(progress), animated: true)
+                    webProgressView.alpha = 1.0
+                }
+            }
             if let ebookProvider = EbookProvider(rawValue: index) {
                 switch ebookProvider {
                 case .taaze:
-                    webview = webviewTaaze
+                    webView = webviewTaaze
+                    webTaazeProgressObservation = webView.observe(\.estimatedProgress, options: [.new], changeHandler: webProgressChangeHandler)
                 case .readmoo:
-                    webview = webviewReadmoo
+                    webView = webviewReadmoo
+                    webReadmooProgressObservation = webView.observe(\.estimatedProgress, options: [.new], changeHandler: webProgressChangeHandler)
                 case .books:
-                    webview = webviewBooks
+                    webView = webviewBooks
+                    webBooksProgressObservation = webView.observe(\.estimatedProgress, options: [.new], changeHandler: webProgressChangeHandler)
                 case .kobo:
-                    webview = webviewKobo
+                    webView = webviewKobo
+                    webKoboProgressObservation = webView.observe(\.estimatedProgress, options: [.new], changeHandler: webProgressChangeHandler)
                 default:
                     continue    // legacy mode doesn't support other ebook stores
                 }
             } else {
                 assertionFailure()
-                webview = WKWebView()
+                webView = WKWebView()
             }
+            webProgressView.progressTintColor = UIColor.etw_tintColor
+            // Add subviews
             let cell = UITableViewCell()
-            cell.contentView.etw_add(subViews: [webview])
+            cell.contentView.etw_add(subViews: [webView])
+            webView.etw_add(subViews: [webProgressView])
             var constraints = [NSLayoutConstraint]()
-            constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|[webview]|", options: [], metrics: nil, views: ["webview": webview])
-            constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:|[webview]|", options: [], metrics: nil, views: ["webview": webview])
+            let viewsDict = ["webview": webView, "webProgressView": webProgressView]
+            constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|[webview]|", options: [], metrics: nil, views: viewsDict)
+            constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:|[webview]|", options: [], metrics: nil, views: viewsDict)
+            constraints += NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[webProgressView]-0-|", options: [], metrics: nil, views: viewsDict)
+            constraints += NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[webProgressView(2)]", options: [], metrics: nil, views: viewsDict)
             NSLayoutConstraint.activate(constraints)
             cell.selectionStyle = .none
             self.cells.append(cell)
