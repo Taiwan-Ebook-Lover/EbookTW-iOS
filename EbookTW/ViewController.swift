@@ -10,9 +10,8 @@ import UIKit
 import SafariServices
 import StoreKit
 
-enum EbookProvider : Int {
+enum EbookProvider : Int, CaseIterable {
     case readmoo, kobo, taaze, books, bookwalker, googleplay, pubu, hyread
-    static let count = 8    // TODO: Swift 4.2 has .allCases.count
 }
 
 enum ViewControllerType {

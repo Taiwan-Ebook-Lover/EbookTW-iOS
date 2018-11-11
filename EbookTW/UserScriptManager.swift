@@ -108,7 +108,7 @@ final class UserScriptManager : NSObject {
     private var webKoboProgressObservation : NSKeyValueObservation!
 
     override init() {
-        for index in 0...(EbookProvider.count - 1) {
+        for index in 0...(EbookProvider.allCases.count - 1) {
             var webView : WKWebView
             let webProgressView = UIProgressView(progressViewStyle: .bar)
             let webProgressChangeHandler : (WKWebView, NSKeyValueObservedChange<Double>) -> Void = {
@@ -178,7 +178,7 @@ final class UserScriptManager : NSObject {
         let urlKobo = URL(string: "https://www.kobo.com/tw/zh/search?Query=" + keywordEncoded)!
 
         urls.removeAll()
-        for index in 0...(EbookProvider.count - 1) {
+        for index in 0...(EbookProvider.allCases.count - 1) {
             if let ebookProvider = EbookProvider(rawValue: index) {
                 let url : URL
                 switch ebookProvider {

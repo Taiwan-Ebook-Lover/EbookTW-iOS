@@ -216,7 +216,7 @@ final class YuerManager : NSObject {
                 return
             }
             self.result = ebookResult
-            for index in 0...(EbookProvider.count - 1) {
+            for index in 0...(EbookProvider.allCases.count - 1) {
                 if let ebookProvider = EbookProvider(rawValue: index) {
                     let count = ebookResult.count(of: ebookProvider)
                     switch count {
@@ -242,7 +242,7 @@ final class YuerManager : NSObject {
 extension YuerManager : UITableViewDataSource {
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        return EbookProvider.count
+        return EbookProvider.allCases.count
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
