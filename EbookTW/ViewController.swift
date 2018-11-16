@@ -152,14 +152,18 @@ final class ViewController: UIViewController {
         searchBar.placeholder = "輸入書名 / ISBN"
         searchBar.autocorrectionType = .yes
         searchBar.delegate = self
-//        let qrCodeButton = UIButton(type: .system)
-//        qrCodeButton.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 46.0)
-//        qrCodeButton.backgroundColor = .brown
-//        qrCodeButton.setTitle("QR Code", for: .normal)
-//        qrCodeButton.setTitleColor(.white, for: .normal)
-//        qrCodeButton.titleLabel?.font = UIFont.systemFont(ofSize: 22.0)
-//        qrCodeButton.addTarget(self, action: #selector(didTapSearchButton), for: .touchUpInside)
-//        searchBar.inputAccessoryView = qrCodeButton
+
+        /*
+        let barcodeButton = UIButton(type: .system)
+        barcodeButton.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 46.0)
+        barcodeButton.etw_setBackgroundColor(.etw_tintColor, for: .normal)
+        barcodeButton.setTitle("掃描條碼", for: .normal)
+        barcodeButton.setTitleColor(.white, for: .normal)
+        barcodeButton.titleLabel?.font = UIFont.systemFont(ofSize: 22.0)
+        barcodeButton.addTarget(self, action: #selector(didTapSearchButton), for: .touchUpInside)
+        searchBar.inputAccessoryView = barcodeButton
+         */
+
         navigationItem.titleView = searchBar
     }
 
@@ -223,6 +227,8 @@ extension ViewController : UISearchBarDelegate {
     }
 }
 
+// MARK: - Utility
+
 extension UIView {
 
     /// Convenience method for Auto Layout
@@ -231,5 +237,25 @@ extension UIView {
             subView.translatesAutoresizingMaskIntoConstraints = false
             addSubview(subView)
         }
+    }
+}
+
+// See: https://stackoverflow.com/a/27095410
+
+extension UIButton {
+
+    private func etw_imageWithColor(color: UIColor) -> UIImage? {
+        let rect = CGRect(x: 0.0, y: 0.0, width: 1.0, height: 1.0)
+        UIGraphicsBeginImageContext(rect.size)
+        let context = UIGraphicsGetCurrentContext()
+        context?.setFillColor(color.cgColor)
+        context?.fill(rect)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return image
+    }
+
+    func etw_setBackgroundColor(_ color: UIColor, for state: UIControl.State) {
+        self.setBackgroundImage(etw_imageWithColor(color: color), for: state)
     }
 }
