@@ -56,6 +56,7 @@ final class ViewController: UIViewController {
     private var viewTypeIsDefaultYuer = true
     private var viewType : ViewControllerType = .initial {
         didSet {
+            navigationItem.rightBarButtonItem = nil
             switch viewType {
             case .initial:
                 tableView.isHidden = true
@@ -123,6 +124,9 @@ final class ViewController: UIViewController {
 
     fileprivate var searchBarKeyword = String()  // for recovering when pressing cancel button
     private let searchBar = UISearchBar()
+    private lazy var shareItem : UIBarButtonItem = {
+        return UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(share))
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -182,7 +186,13 @@ final class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-    func didTapSearchButton() {
+    /// For universal link; programmatically.
+    func search(keyword: String) {
+        searchBar.text = keyword
+        didTapSearchButton()
+    }
+
+    private func didTapSearchButton() {
         if let keyword = searchBar.text {
             self.searchBarKeyword = keyword
             if viewTypeIsDefaultYuer {
@@ -193,12 +203,32 @@ final class ViewController: UIViewController {
         }
         searchBar.resignFirstResponder()    // must do after self.keyword is set
 
+        switch viewType {
+        case .yuer(keyword: _):
+            navigationItem.rightBarButtonItem = shareItem   // must do after searchBar.resignFirstResponder()
+        default:
+            break
+        }
+
         let oldSearchCount = UserDefaults.standard.integer(forKey: StoreReview.kSearchCount)
         let newSearchCount = oldSearchCount + 1
         UserDefaults.standard.set(newSearchCount, forKey: StoreReview.kSearchCount)
 
         if StoreReview.didReachRequestReviewCondition {
             StoreReview.setTimer()
+        }
+    }
+
+    @objc private func share() {
+        switch viewType {
+        case .yuer(keyword: let keyword):
+            if let keywordEncoded = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let bookURL = URL(string: "https://taiwan-ebook-lover.github.io/search?q=\(keywordEncoded)") {
+                let activityViewController = UIActivityViewController(activityItems: [bookURL], applicationActivities: nil)
+                activityViewController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+                present(activityViewController, animated: true, completion: nil)
+            }
+        default:
+            break
         }
     }
 }

@@ -12,10 +12,10 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    private let vc = ViewController()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let window = UIWindow()
-        let vc = ViewController()
         let nav = UINavigationController(rootViewController: vc)
         window.rootViewController = nav
         window.makeKeyAndVisible()
@@ -54,7 +54,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
+    func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+            let incomingURL = userActivity.webpageURL,
+            let components = NSURLComponents(url: incomingURL, resolvingAgainstBaseURL: true) else {
+                return false
+        }
+        guard let path = components.path else {
+            showAlert(msg: "No path")
+            return false
+        }
+        if path != "/search" {
+            showAlert(msg: "Not /search")
+            return false
+        }
+        guard let params = components.queryItems else {
+            showAlert(msg: "No query")
+            return false
+        }
+        guard let keywordEncoded = params.first(where: { $0.name == "q" } )?.value else {
+            showAlert(msg: "No keyword")
+            return false
+        }
+        guard let keywordDecoded = keywordEncoded.removingPercentEncoding else {
+            showAlert(msg: "Keyword cannot be decoded")
+            return false
+        }
+        vc.search(keyword: keywordDecoded)
+        return true
+    }
 
+    private func showAlert(msg: String) {
+        let alert = UIAlertController(title: "Error", message: msg, preferredStyle: .alert)
+        let confirm = UIAlertAction(title: "OK", style: .default, handler: nil)
+        alert.addAction(confirm)
+        vc.present(alert, animated: true, completion: nil)
+    }
 }
 
 extension UIColor {
