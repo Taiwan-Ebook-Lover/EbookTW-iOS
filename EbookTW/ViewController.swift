@@ -244,7 +244,12 @@ extension ViewController : UISearchBarDelegate {
 
     func searchBarShouldEndEditing(_ searchBar: UISearchBar) -> Bool {
         searchBar.setShowsCancelButton(false, animated: true)
-        searchBar.text = self.searchBarKeyword
+        if searchBar.text != "" {
+            searchBar.text = self.searchBarKeyword
+        } else {
+            viewType = .initial
+            self.searchBarKeyword = ""
+        }
         return true
     }
 
@@ -253,6 +258,7 @@ extension ViewController : UISearchBarDelegate {
     }
 
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = self.searchBarKeyword  // Cancel any modification
         searchBar.resignFirstResponder()
     }
 }
