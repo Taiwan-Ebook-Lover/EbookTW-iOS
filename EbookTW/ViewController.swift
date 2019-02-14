@@ -60,16 +60,10 @@ final class ViewController: UIViewController {
             switch viewType {
             case .initial:
                 tableView.isHidden = true
-                view.etw_add(subViews: [initialView])
-                NSLayoutConstraint.activate(
-                    NSLayoutConstraint.constraints(withVisualFormat: "H:|[initialView]|", options: [], metrics: nil, views: ["initialView": initialView]) +
-                    NSLayoutConstraint.constraints(withVisualFormat: "V:|[initialView]|", options: [], metrics: nil, views: ["initialView": initialView])
-                )
+                initialView.isHidden = false
             case .yuer(keyword: let keyword):
                 tableView.isHidden = false
-                if initialView.superview != nil {
-                    initialView.removeFromSuperview()
-                }
+                initialView.isHidden = true
                 tableView.dataSource = yuerManager
                 tableView.delegate = yuerManager
                 yuerManager.searchEbook(keyword: keyword, errorHandler: { (errorString) in
@@ -103,9 +97,7 @@ final class ViewController: UIViewController {
                 })
             case .userScript(keyword: let keyword):
                 tableView.isHidden = false
-                if initialView.superview != nil {
-                    initialView.removeFromSuperview()
-                }
+                initialView.isHidden = true
                 tableView.dataSource = userScriptManager
                 tableView.delegate = userScriptManager
                 tableView.rowHeight = 200.0
@@ -121,6 +113,20 @@ final class ViewController: UIViewController {
     private lazy var yuerManager : YuerManager = {
        return YuerManager(tableView: tableView)
     }()
+    private lazy var searchHistoryManager : SearchHistoryManager = {
+        return SearchHistoryManager(vc: self)
+    }()
+    var showSearchHistory : Bool = false {
+        didSet {
+            switch showSearchHistory {
+            case true:
+                searchHistoryManager.tableView.reloadData()
+                searchHistoryManager.tableView.isHidden = false
+            case false:
+                searchHistoryManager.tableView.isHidden = true
+            }
+        }
+    }
 
     fileprivate var searchBarKeyword = String()  // for recovering when pressing cancel button
     private let searchBar = UISearchBar()
@@ -132,10 +138,17 @@ final class ViewController: UIViewController {
         super.viewDidLoad()
 
         viewType = .initial
-        view.etw_add(subViews: [tableView])
+        showSearchHistory = false
+
+        view.etw_add(subViews: [initialView, tableView, searchHistoryManager.tableView])
+        let viewsDict = ["initialView": initialView, "tableView": tableView, "shTableView": searchHistoryManager.tableView]
         NSLayoutConstraint.activate(
-            NSLayoutConstraint.constraints(withVisualFormat: "H:|[tableView]|", options: [], metrics: nil, views: ["tableView": tableView]) +
-            NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: [], metrics: nil, views: ["tableView": tableView])
+            NSLayoutConstraint.constraints(withVisualFormat: "H:|[initialView]|", options: [], metrics: nil, views: ["initialView": initialView]) +
+            NSLayoutConstraint.constraints(withVisualFormat: "V:|[initialView]|", options: [], metrics: nil, views: ["initialView": initialView]) +
+            NSLayoutConstraint.constraints(withVisualFormat: "H:|[tableView]|", options: [], metrics: nil, views: viewsDict) +
+            NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: [], metrics: nil, views: viewsDict) +
+            NSLayoutConstraint.constraints(withVisualFormat: "H:|[shTableView]|", options: [], metrics: nil, views: viewsDict) +
+            NSLayoutConstraint.constraints(withVisualFormat: "V:|[shTableView]|", options: [], metrics: nil, views: viewsDict)
         )
 
         // A hacky fix for weird top padding. Take 18.0 to be consistent with other section headers.
@@ -200,6 +213,7 @@ final class ViewController: UIViewController {
             } else {
                 viewType = .userScript(keyword: keyword)
             }
+            searchHistoryManager.add(keyword: keyword)
         }
         searchBar.resignFirstResponder()    // must do after self.keyword is set
 
@@ -239,11 +253,17 @@ extension ViewController : UISearchBarDelegate {
 
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool {
         searchBar.setShowsCancelButton(true, animated: true)
+        showSearchHistory = true
         return true
+    }
+
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        searchHistoryManager.searchText = searchText
     }
 
     func searchBarShouldEndEditing(_ searchBar: UISearchBar) -> Bool {
         searchBar.setShowsCancelButton(false, animated: true)
+        showSearchHistory = false
         if searchBar.text != "" {
             searchBar.text = self.searchBarKeyword
         } else {
