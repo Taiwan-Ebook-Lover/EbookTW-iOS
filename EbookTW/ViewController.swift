@@ -120,7 +120,6 @@ final class ViewController: UIViewController {
         didSet {
             switch showSearchHistory {
             case true:
-                searchHistoryManager.tableView.reloadData()
                 searchHistoryManager.tableView.isHidden = false
             case false:
                 searchHistoryManager.tableView.isHidden = true
@@ -128,7 +127,7 @@ final class ViewController: UIViewController {
         }
     }
 
-    fileprivate var searchBarKeyword = String()  // for recovering when pressing cancel button
+    fileprivate var searchedKeyword = String()  // for recovering
     private let searchBar = UISearchBar()
     private lazy var shareItem : UIBarButtonItem = {
         return UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(share))
@@ -207,7 +206,7 @@ final class ViewController: UIViewController {
 
     private func didTapSearchButton() {
         if let keyword = searchBar.text {
-            self.searchBarKeyword = keyword
+            searchedKeyword = keyword
             if viewTypeIsDefaultYuer {
                 viewType = .yuer(keyword: keyword)
             } else {
@@ -264,12 +263,15 @@ extension ViewController : UISearchBarDelegate {
     func searchBarShouldEndEditing(_ searchBar: UISearchBar) -> Bool {
         searchBar.setShowsCancelButton(false, animated: true)
         showSearchHistory = false
-        if searchBar.text != "" {
-            searchBar.text = self.searchBarKeyword
-        } else {
+        if searchBar.text == "" {
             viewType = .initial
-            self.searchBarKeyword = ""
+            // searchBar.text (User) -> searchBarKeyword (Cache) -> searchHistoryManager.searchText (TableView)
+            searchedKeyword = ""
+        } else {
+            // searchBar.text (User) <- searchBarKeyword (Cache) -> searchHistoryManager.searchText (TableView)
+            searchBar.text = searchedKeyword
         }
+        searchHistoryManager.searchText = searchedKeyword  // reset
         return true
     }
 
@@ -278,7 +280,8 @@ extension ViewController : UISearchBarDelegate {
     }
 
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.text = self.searchBarKeyword  // Cancel any modification
+        // searchBar.text (User) <- searchBarKeyword (Cache)
+        searchBar.text = searchedKeyword  // Cancel any modification
         searchBar.resignFirstResponder()
     }
 }
