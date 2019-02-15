@@ -76,15 +76,19 @@ final class YuerEbookTableViewCell : UITableViewCell {
             case .loading:
                 centerTextLabel.textColor = .black
                 centerTextLabel.text = "搜尋中..."
+                selectionStyle = .none
             case .expand:
                 centerTextLabel.textColor = .etw_tintColor
                 centerTextLabel.text = "顯示更多"
+                selectionStyle = .default
             case .collapse:
                 centerTextLabel.textColor = .etw_tintColor
                 centerTextLabel.text = "收合結果"
+                selectionStyle = .default
             case .noResult:
                 centerTextLabel.textColor = .black
                 centerTextLabel.text = "無搜尋結果"
+                selectionStyle = .none
             }
         }
     }
