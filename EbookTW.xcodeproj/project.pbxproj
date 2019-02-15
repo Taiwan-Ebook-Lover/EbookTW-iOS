@@ -305,7 +305,7 @@
 				CODE_SIGN_ENTITLEMENTS = EbookTW/EbookTW.entitlements;
 				DEVELOPMENT_TEAM = 249RY7L79K;
 				INFOPLIST_FILE = EbookTW/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = nandalu.EbookTW;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -321,7 +321,7 @@
 				CODE_SIGN_ENTITLEMENTS = EbookTW/EbookTW.entitlements;
 				DEVELOPMENT_TEAM = 249RY7L79K;
 				INFOPLIST_FILE = EbookTW/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = nandalu.EbookTW;
 				PRODUCT_NAME = "$(TARGET_NAME)";

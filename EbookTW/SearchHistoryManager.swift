@@ -59,6 +59,10 @@ final class SearchHistoryManager : NSObject {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
+        if #available(iOS 11.0, *) {
+        } else {
+            tableView.estimatedSectionHeaderHeight = 44.0
+        }
 
         UserDefaults.standard.register(defaults: [Key.isOnICloud: true])
 
@@ -159,6 +163,10 @@ extension SearchHistoryManager : UITableViewDataSource {
         let titleLabel = UILabel()
         titleLabel.textColor = .darkGray
         titleLabel.text = "搜尋記錄"
+        if #available(iOS 11.0, *) {
+        } else {
+            titleLabel.sizeToFit()
+        }
         let title = UIBarButtonItem(customView: titleLabel)
         let settings = UIBarButtonItem(title: "設定", style: .plain, target: self, action: #selector(openSettings))
         let clear = UIBarButtonItem(title: "清除", style: .plain, target: self, action: #selector(clearHistory))
