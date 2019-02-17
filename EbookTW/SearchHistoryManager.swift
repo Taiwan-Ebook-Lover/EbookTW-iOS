@@ -56,6 +56,8 @@ final class SearchHistoryManager : NSObject {
         super.init()
 
         tableView.keyboardDismissMode = .interactive
+        tableView.showsVerticalScrollIndicator = false
+
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
