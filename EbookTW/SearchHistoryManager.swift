@@ -63,6 +63,11 @@ final class SearchHistoryManager : NSObject {
         } else {
             tableView.estimatedSectionHeaderHeight = 44.0
         }
+        if #available(iOS 12.0, *) {
+            // Starting in iOS 12 the default is now false.
+        } else {
+            tableView.cellLayoutMarginsFollowReadableWidth = false
+        }
 
         UserDefaults.standard.register(defaults: [SettingsKey.isOnICloud: true])
 
@@ -210,7 +215,7 @@ extension SearchHistoryManager : UITableViewDataSource {
         let settings = UIBarButtonItem(title: "設定", style: .plain, target: self, action: #selector(openSettings))
         let clear = UIBarButtonItem(title: "清除", style: .plain, target: self, action: #selector(clearHistory))
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        header.items = [title, flexibleSpace, settings, clear]
+        header.items = [title, clear, flexibleSpace, settings]
         return header
     }
 

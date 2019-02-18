@@ -37,6 +37,7 @@ class SettingsViewController : UITableViewController {
         super.viewDidLoad()
 
         title = "設定"
+        tableView.cellLayoutMarginsFollowReadableWidth = true
         tableView.register(SettingsCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         let doneItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
         navigationItem.rightBarButtonItem = doneItem
@@ -148,7 +149,7 @@ class SettingsViewController : UITableViewController {
                 if let rowType = SettingsRowAdvanced(rawValue: indexPath.row) {
                     switch rowType {
                     case .davaSaving:
-                        cell.textLabel?.text = "節省行動數據"
+                        cell.textLabel?.text = "節省網路流量"
                         cell.detailTextLabel?.text = "搜尋結果列表上的圖片將不會載入"
                         let dataSavingSwitch = UISwitch()
                         dataSavingSwitch.isOn = UserDefaults.standard.bool(forKey: SettingsKey.isDataSaving)
@@ -196,8 +197,12 @@ class SettingsViewController : UITableViewController {
                 if let rowType = SettingsRowSearchHistory(rawValue: indexPath.row) {
                     switch rowType {
                     case .export:
+                        guard let textLabel = tableView.cellForRow(at: indexPath)?.textLabel else {
+                            return
+                        }
                         let activityViewController = UIActivityViewController(activityItems: [SearchHistoryManager.historyText], applicationActivities: nil)
-                        activityViewController.popoverPresentationController?.sourceView = tableView.cellForRow(at: indexPath)
+                        activityViewController.popoverPresentationController?.sourceView = textLabel
+                        activityViewController.popoverPresentationController?.sourceRect = textLabel.frame
                         present(activityViewController, animated: true, completion: nil)
                     default:
                         break
