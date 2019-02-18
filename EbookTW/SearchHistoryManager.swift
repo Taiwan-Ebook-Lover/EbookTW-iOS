@@ -12,7 +12,6 @@ final class SearchHistoryManager : NSObject {
 
     private let cellReuseIdentifier = "SearchHistoryCellReuseIdentifier"
     private struct Key {
-        static let isOnICloud = "isSearchHistoryOnICloud"
         static let searchHistory = "SearchHistory"
     }
 
@@ -26,7 +25,7 @@ final class SearchHistoryManager : NSObject {
         }
     }
     private var filteredArray : [String] {
-        let isOnICloud = UserDefaults.standard.bool(forKey: Key.isOnICloud)
+        let isOnICloud = UserDefaults.standard.bool(forKey: SettingsKey.isOnICloud)
         var array : [String]? = nil
         switch isOnICloud {
         case true:
@@ -35,8 +34,7 @@ final class SearchHistoryManager : NSObject {
             array = UserDefaults.standard.stringArray(forKey: Key.searchHistory)
         }
         guard let dataArray = array else {
-            assertionFailure()
-            return [String]()
+            return [String]()   // no history yet
         }
         if searchText != "" {
             let filtered = dataArray.filter {
@@ -66,14 +64,14 @@ final class SearchHistoryManager : NSObject {
             tableView.estimatedSectionHeaderHeight = 44.0
         }
 
-        UserDefaults.standard.register(defaults: [Key.isOnICloud: true])
+        UserDefaults.standard.register(defaults: [SettingsKey.isOnICloud: true])
 
         NotificationCenter.default.addObserver(self, selector: #selector(storeDidChange), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
     }
 
     func add(keyword: String) {
-        let isOnICloud = UserDefaults.standard.bool(forKey: Key.isOnICloud)
+        let isOnICloud = UserDefaults.standard.bool(forKey: SettingsKey.isOnICloud)
         switch isOnICloud {
         case true:
             if var array = NSUbiquitousKeyValueStore.default.array(forKey: Key.searchHistory) as? [String] {
@@ -94,6 +92,43 @@ final class SearchHistoryManager : NSObject {
         }
     }
 
+    enum HistoryDestiniation {
+        case local, iCloud
+    }
+    class func moveTo(destiniation: HistoryDestiniation) {
+        switch destiniation {
+        case .local:
+            if let array = NSUbiquitousKeyValueStore.default.array(forKey: Key.searchHistory) as? [String] {
+                UserDefaults.standard.setValue(array, forKey: Key.searchHistory)
+                NSUbiquitousKeyValueStore.default.removeObject(forKey: Key.searchHistory)
+                NSUbiquitousKeyValueStore.default.synchronize() // required from removeObject()
+            }
+        case .iCloud:
+            if let array = UserDefaults.standard.stringArray(forKey: Key.searchHistory) {
+                NSUbiquitousKeyValueStore.default.set(array, forKey: Key.searchHistory)
+                UserDefaults.standard.set(nil, forKey: Key.searchHistory)
+            }
+        }
+    }
+
+    class var historyText : String {
+        var result = String()
+        var historyArray : [String]? = nil
+        let isOnICloud = UserDefaults.standard.bool(forKey: SettingsKey.isOnICloud)
+        switch isOnICloud {
+        case true:
+            historyArray = NSUbiquitousKeyValueStore.default.array(forKey: Key.searchHistory) as? [String]
+        case false:
+            historyArray = UserDefaults.standard.stringArray(forKey: Key.searchHistory)
+        }
+        if let historyArray = historyArray {
+            for keyword in historyArray {
+                result += keyword + "\n"
+            }
+        }
+        return result
+    }
+
     // MARK: - Private methods
 
     @objc private func keyboardWillShow(notification: NSNotification) {
@@ -108,7 +143,9 @@ final class SearchHistoryManager : NSObject {
     }
 
     @objc private func openSettings() {
-        // TODO:
+        let settingsViewController = SettingsViewController(style: .grouped)
+        let nav = UINavigationController(rootViewController: settingsViewController)
+        vc?.present(nav, animated: true, completion: nil)
     }
 
     @objc private func storeDidChange(notification: NSNotification) {
@@ -134,10 +171,10 @@ final class SearchHistoryManager : NSObject {
     @objc private func clearHistory() {
         let alert = UIAlertController(title: "確定要清除所有搜尋記錄？", message: nil, preferredStyle: .alert)
         let confirm = UIAlertAction(title: "確定清除", style: .destructive) { (action) in
-            let isOnICloud = UserDefaults.standard.bool(forKey: Key.isOnICloud)
+            let isOnICloud = UserDefaults.standard.bool(forKey: SettingsKey.isOnICloud)
             switch isOnICloud {
             case true:
-                NSUbiquitousKeyValueStore.default.set([String](), forKey: Key.searchHistory)
+                NSUbiquitousKeyValueStore.default.removeObject(forKey: Key.searchHistory)
             case false:
                 UserDefaults.standard.set(nil, forKey: Key.searchHistory)
             }
@@ -211,7 +248,7 @@ extension SearchHistoryManager : UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            let isOnICloud = UserDefaults.standard.bool(forKey: Key.isOnICloud)
+            let isOnICloud = UserDefaults.standard.bool(forKey: SettingsKey.isOnICloud)
             switch isOnICloud {
             case true:
                 var array = NSUbiquitousKeyValueStore.default.array(forKey: Key.searchHistory)

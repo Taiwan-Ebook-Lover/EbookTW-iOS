@@ -53,7 +53,6 @@ struct StoreReview {
 
 final class ViewController: UIViewController {
 
-    private var viewTypeIsDefaultYuer = true
     private var viewType : ViewControllerType = .initial {
         didSet {
             navigationItem.rightBarButtonItem = nil
@@ -76,7 +75,6 @@ final class ViewController: UIViewController {
                     }()
                     let alert = UIAlertController(title: errorString, message: errorMessage, preferredStyle: .alert)
                     let switchAction = UIAlertAction(title: "改用舊版模式", style: .default, handler: { (alertAction) in
-                        self.viewTypeIsDefaultYuer = false
                         self.viewType = .userScript(keyword: keyword)
                     })
                     let retryAction = UIAlertAction(title: "重試", style: .default, handler: { (alertAction) in
@@ -207,9 +205,11 @@ final class ViewController: UIViewController {
     private func didTapSearchButton() {
         if let keyword = searchBar.text {
             searchedKeyword = keyword
-            if viewTypeIsDefaultYuer {
+            let isUserScriptMode = UserDefaults.standard.bool(forKey: SettingsKey.isUserScriptMode)
+            switch isUserScriptMode {
+            case false:
                 viewType = .yuer(keyword: keyword)
-            } else {
+            case true:
                 viewType = .userScript(keyword: keyword)
             }
             searchHistoryManager.add(keyword: keyword)

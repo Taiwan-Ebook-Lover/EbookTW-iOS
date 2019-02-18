@@ -349,7 +349,8 @@ extension YuerManager : UITableViewDataSource {
         cell.bookTitleLabel.text = book.title
         cell.bookPriceLabel.text = String(format: "%.0f %@", book.price, book.priceCurrency)
         cell.bookThumbImageLink = book.thumbnail
-        if let url = URL(string: book.thumbnail) {
+        if UserDefaults.standard.bool(forKey: SettingsKey.isDataSaving) != true,
+            let url = URL(string: book.thumbnail) {
             let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, urlResponse, error) in
                 if let error = error {
                     print(error)
