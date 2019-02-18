@@ -150,7 +150,7 @@ class SettingsViewController : UITableViewController {
                     switch rowType {
                     case .davaSaving:
                         cell.textLabel?.text = "節省網路流量"
-                        cell.detailTextLabel?.text = "搜尋結果列表上的圖片將不會載入"
+                        cell.detailTextLabel?.text = "圖片將不會載入"
                         let dataSavingSwitch = UISwitch()
                         dataSavingSwitch.isOn = UserDefaults.standard.bool(forKey: SettingsKey.isDataSaving)
                         dataSavingSwitch.addTarget(self, action: #selector(switchDataSaving), for: .valueChanged)

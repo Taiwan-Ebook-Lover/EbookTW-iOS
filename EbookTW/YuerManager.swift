@@ -72,7 +72,8 @@ final class YuerEbookTableViewCell : UITableViewCell {
         didSet {
             switch type {
             case .book:
-                break
+                centerTextLabel.text = nil
+                selectionStyle = .default
             case .loading:
                 centerTextLabel.textColor = .black
                 centerTextLabel.text = "搜尋中..."
@@ -120,15 +121,6 @@ final class YuerEbookTableViewCell : UITableViewCell {
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        bookTitleLabel.text = nil
-        bookPriceLabel.text = nil
-        bookThumbImageView.image = nil
-        bookThumbImageLink = nil
-        centerTextLabel.text = nil
     }
 }
 
@@ -295,6 +287,11 @@ extension YuerManager : UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: YuerEbookTableViewCell.cellReuseIdentifier, for: indexPath) as! YuerEbookTableViewCell
+        cell.bookTitleLabel.text = nil
+        cell.bookPriceLabel.text = nil
+        cell.bookThumbImageView.image = nil
+        cell.bookThumbImageLink = nil
+        cell.type = .book   // default value
         guard let ebookProvider = EbookProvider(rawValue: indexPath.section) else {
             assertionFailure()
             return cell
@@ -320,9 +317,10 @@ extension YuerManager : UITableViewDataSource {
                 cell.type = .noResult
                 return cell
             default:
-                cell.type = .book   // continue to show book details below
+                break
             }
         }
+        // .book: continue to show book details below
         if !(row < result.count(of: ebookProvider)) {
             assertionFailure()
             return cell
