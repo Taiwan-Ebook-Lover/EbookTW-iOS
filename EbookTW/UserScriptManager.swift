@@ -28,9 +28,10 @@ final class UserScriptManager : NSObject {
             zoom = 330
             width = 300
         default:
-            zoom = 400
-            width = 400
+            zoom = 420
+            width = 420
         }
+        /* v1 for TAAZE
         let userScriptString1 = """
           var styleElement = document.createElement('style');
           document.documentElement.appendChild(styleElement);
@@ -46,11 +47,15 @@ final class UserScriptManager : NSObject {
           var element2 = document.getElementById('searchresult_catalg_list');
           element1.parentElement.style.width = '0';
         """
-        let userScript1 = WKUserScript(source: userScriptString1, injectionTime: .atDocumentStart, forMainFrameOnly: true)
-        let userScript2 = WKUserScript(source: userScriptString2, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+         */
+        let userScriptString = """
+            var styleElement = document.createElement('style');
+            document.documentElement.appendChild(styleElement);
+            styleElement.textContent = 'div.container-fluid, div.hidden-sm, div.hidden-md, div.hidden-xs, div.visible-xs-block, div.visible-sm-block, div#mobileHeader {display: none !important; height: 0 !important; width: 0 !important;} div.md_top {margin-top: 0} div#listView > div:not(:first-of-type) {display: none !important;}';
+        """
+        let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
-        config.userContentController.addUserScript(userScript1)
-        config.userContentController.addUserScript(userScript2)
+        config.userContentController.addUserScript(userScript)
         let webview = WKWebView(frame: .zero, configuration: config)
         webview.isUserInteractionEnabled = false
         return webview
@@ -61,7 +66,7 @@ final class UserScriptManager : NSObject {
         let userScriptString1 = """
             var styleElement = document.createElement('style');
             document.documentElement.appendChild(styleElement);
-            styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-ct-quickBar, div#pagination, footer {display: none !important; height: 0 !important;} ul#main_items li:not(:first-child) {display: none !important;}';
+            styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-ct-quickBar, div.special-banner, div#leftMenu, div#pagination, footer {display: none !important; height: 0 !important; width: 0 !important;} ul#main_items li:not(:first-child) {display: none !important;}';
         """
         // only keep div.rm-search-summary for no search result
         let userScriptString2 = "if (document.getElementById('chalkboard').clientHeight != 0) {" +
@@ -81,7 +86,7 @@ final class UserScriptManager : NSObject {
         let userScriptString = """
           var styleElement = document.createElement('style');
           document.documentElement.appendChild(styleElement);
-          styleElement.textContent = 'div#header, div#catbtn, div.tbar, h4.keywordlist, div.mm_031, div#footer {display: none !important; height: 0 !important;} div#content {padding: 0 !important;} ul.bd li:not(:first-child) {display: none !important;}';
+          styleElement.textContent = 'div#header, div#catbtn, div.tbar, h4.keywordlist, div.mm_031, div#footer, div.color_basic, div.bc, div.pull_20, blockquote, div.search-mod-03, div.cntlisearch07, div.cntlisearch09, div.cntlisearch10, div.cntlisearch11, div.search-mod-01, div.search-mod-04, div.type04_footer {display: none !important; height: 0 !important;} div#content {padding: 0 !important;} ul.bd li:not(:first-child), ul.searchbook li:not(:first-child) {display: none !important;}';
         """
         let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
