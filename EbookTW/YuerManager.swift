@@ -93,13 +93,26 @@ final class YuerEbookTableViewCell : UITableViewCell {
             }
         }
     }
+    var showBookImageView : Bool = true {
+        didSet {
+            switch showBookImageView {
+            case true:
+                bookThumbImageViewWidthConstraint.constant = 90.0
+            case false:
+                bookThumbImageViewWidthConstraint.constant = 0
+            }
+        }
+    }
+
     let bookTitleLabel = UILabel()
     let bookPriceLabel = UILabel()
     let bookThumbImageView = UIImageView()
     var bookThumbImageLink : String?
     private let centerTextLabel = UILabel()
+    private var bookThumbImageViewWidthConstraint : NSLayoutConstraint
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        bookThumbImageViewWidthConstraint = bookThumbImageView.widthAnchor.constraint(equalToConstant: 90.0)
         super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
         bookTitleLabel.numberOfLines = 2
         bookTitleLabel.font = UIFont.preferredFont(forTextStyle: .headline)
@@ -112,10 +125,11 @@ final class YuerEbookTableViewCell : UITableViewCell {
         NSLayoutConstraint.activate(
             NSLayoutConstraint.constraints(withVisualFormat: "V:|[bookThumbImageView]|", options: [], metrics: nil, views: viewsDict) +
             NSLayoutConstraint.constraints(withVisualFormat: "V:|-[bookTitleLabel]-[bookPriceLabel]-|", options: .alignAllTrailing, metrics: nil, views: viewsDict) +
-            NSLayoutConstraint.constraints(withVisualFormat: "H:|-[bookThumbImageView(90)]-[bookTitleLabel]-|", options: [], metrics: nil, views: viewsDict) +
+            NSLayoutConstraint.constraints(withVisualFormat: "H:|-[bookThumbImageView]-[bookTitleLabel]-|", options: [], metrics: nil, views: viewsDict) +
             [
-            centerTextLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            centerTextLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+                bookThumbImageViewWidthConstraint,
+                centerTextLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+                centerTextLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
             ])
     }
 
@@ -131,6 +145,7 @@ final class YuerManager : NSObject {
     private weak var tableView : UITableView?
     private var result : YuerEbookResult? = nil
     private var resultStates = [EbookProvider: EbookProviderViewState]()
+    private var showBookImageView : Bool = true
 
     private static let session : URLSession = {
         let config = URLSessionConfiguration.default
@@ -161,9 +176,10 @@ final class YuerManager : NSObject {
             assertionFailure()
             return
         }
-        self.result = nil
-        self.resultStates = [EbookProvider: EbookProviderViewState]()
-        self.tableView?.reloadData()
+        result = nil
+        resultStates = [EbookProvider: EbookProviderViewState]()
+        showBookImageView = !(UserDefaults.standard.bool(forKey: SettingsKey.isDataSaving))
+        tableView?.reloadData()
         let task = YuerManager.session.dataTask(with: url) { (data, urlResponse, error) in
             if let error = error {
                 errorHandler(error.localizedDescription)
@@ -347,8 +363,8 @@ extension YuerManager : UITableViewDataSource {
         cell.bookTitleLabel.text = book.title
         cell.bookPriceLabel.text = String(format: "%.0f %@", book.price, book.priceCurrency)
         cell.bookThumbImageLink = book.thumbnail
-        if UserDefaults.standard.bool(forKey: SettingsKey.isDataSaving) != true,
-            let url = URL(string: book.thumbnail) {
+        if showBookImageView, let url = URL(string: book.thumbnail) {
+            cell.showBookImageView = true
             let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, urlResponse, error) in
                 if let error = error {
                     print(error)
@@ -367,6 +383,8 @@ extension YuerManager : UITableViewDataSource {
                 }
             })
             task.resume()
+        } else {
+            cell.showBookImageView = false
         }
         return cell
     }
