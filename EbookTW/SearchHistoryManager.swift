@@ -83,6 +83,9 @@ final class SearchHistoryManager : NSObject {
                 array = array.filter { $0 != keyword }
                 array.insert(keyword, at: 0)
                 NSUbiquitousKeyValueStore.default.set(array, forKey: Key.searchHistory)
+                // Note: Because we directly set array, if a new request is made before the latest history fetched from iCloud, those unsynced changes on iCloud will be lost!
+                // Ideally, we should have a server running database as the single source of truth... I should have used CloudKit.
+                // i.e., we're assuming the user only uses one device at a time.
             } else {
                 NSUbiquitousKeyValueStore.default.set([keyword], forKey: Key.searchHistory)
             }
