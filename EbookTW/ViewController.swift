@@ -215,6 +215,7 @@ final class ViewController: UIViewController {
             searchHistoryManager.add(keyword: keyword)
         }
         searchBar.resignFirstResponder()    // must do after self.keyword is set
+        tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
 
         switch viewType {
         case .yuer(keyword: _):

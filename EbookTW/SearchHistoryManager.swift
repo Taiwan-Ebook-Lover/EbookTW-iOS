@@ -243,9 +243,11 @@ extension SearchHistoryManager : UITableViewDataSource {
                 text = "（沒有資料）"
             }
             cell.textLabel?.text = text
+            cell.textLabel?.textColor = .darkGray
             cell.selectionStyle = .none
             return cell
         } else {
+            cell.textLabel?.textColor = .black
             cell.selectionStyle = .default
         }
         if indexPath.row < filteredArray.count {
@@ -278,6 +280,9 @@ extension SearchHistoryManager : UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        if isEmptyState {
+            return
+        }
         if let keyword = tableView.cellForRow(at: indexPath)?.textLabel?.text {
             vc?.search(keyword: keyword)
         }
