@@ -29,7 +29,7 @@ class SettingsViewController : UITableViewController {
         case davaSaving, userScriptMode
     }
     private enum SettingsRowAbout : Int, CaseIterable {
-        case privacyPolicy, version
+        case privacyPolicy, version, website, twitter
     }
     private let cellReuseIdentifier = "SettingsCellReuseIdentifier"
 
@@ -41,6 +41,15 @@ class SettingsViewController : UITableViewController {
         tableView.register(SettingsCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         let doneItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
         navigationItem.rightBarButtonItem = doneItem
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        // like clearsSelectionOnViewWillAppear
+        if let selectedRow = tableView.indexPathForSelectedRow {
+            tableView.deselectRow(at: selectedRow, animated: true)
+        }
     }
 
     @objc private func done() {
@@ -172,6 +181,16 @@ class SettingsViewController : UITableViewController {
             case .about:
                 if let rowType = SettingsRowAbout(rawValue: indexPath.row) {
                     switch rowType {
+                    case .website:
+                        cell.textLabel?.text = "官方網站"
+                        cell.detailTextLabel?.text = "https://taiwan-ebook-lover.github.io"
+                        cell.selectionStyle = .default
+                        cell.accessoryType = .disclosureIndicator
+                    case .twitter:
+                        cell.textLabel?.text = "官方推特"
+                        cell.detailTextLabel?.text = "@TaiwanEBook"
+                        cell.selectionStyle = .default
+                        cell.accessoryType = .disclosureIndicator
                     case .privacyPolicy:
                         cell.textLabel?.text = "隱私權政策"
                         cell.selectionStyle = .default
@@ -190,7 +209,6 @@ class SettingsViewController : UITableViewController {
     // MARK: - UITableViewDelegate
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
         if let sectionType = SettingsSection(rawValue: indexPath.section) {
             switch sectionType {
             case .searchHistory:
@@ -211,6 +229,20 @@ class SettingsViewController : UITableViewController {
             case .about:
                 if let rowType = SettingsRowAbout(rawValue: indexPath.row) {
                     switch rowType {
+                    case .website:
+                        if let url = URL(string: "https://taiwan-ebook-lover.github.io") {
+                            let safari = SFSafariViewController(url: url)
+                            safari.preferredBarTintColor = .etw_tintColor
+                            safari.preferredControlTintColor = .white
+                            present(safari, animated: true, completion: nil)
+                        }
+                    case .twitter:
+                        if let url = URL(string: "https://twitter.com/TaiwanEBook") {
+                            let safari = SFSafariViewController(url: url)
+                            safari.preferredBarTintColor = .etw_tintColor
+                            safari.preferredControlTintColor = .white
+                            present(safari, animated: true, completion: nil)
+                        }
                     case .privacyPolicy:
                         if let url = URL(string: "https://denkeni.org/ebook-tw-privacy-policy.html") {
                             let safari = SFSafariViewController(url: url)
