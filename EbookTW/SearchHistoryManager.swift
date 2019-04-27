@@ -236,18 +236,10 @@ extension SearchHistoryManager : UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
         if isEmptyState {
-            let text : String
-            if searchText != "" {
-                text = "（沒有符合的記錄）"
-            } else {
-                text = "（沒有資料）"
-            }
-            cell.textLabel?.text = text
-            cell.textLabel?.textColor = .darkGray
+            cell.textLabel?.text = searchText
             cell.selectionStyle = .none
             return cell
         } else {
-            cell.textLabel?.textColor = .black
             cell.selectionStyle = .default
         }
         if indexPath.row < filteredArray.count {
@@ -280,10 +272,7 @@ extension SearchHistoryManager : UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        if isEmptyState {
-            return
-        }
-        if let keyword = tableView.cellForRow(at: indexPath)?.textLabel?.text {
+        if let keyword = tableView.cellForRow(at: indexPath)?.textLabel?.text, keyword != "" {
             vc?.search(keyword: keyword)
         }
     }
