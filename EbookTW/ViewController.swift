@@ -140,8 +140,10 @@ final class ViewController: UIViewController {
         view.etw_add(subViews: [initialView, tableView, searchHistoryManager.tableView])
         let viewsDict = ["initialView": initialView, "tableView": tableView, "shTableView": searchHistoryManager.tableView]
         NSLayoutConstraint.activate(
-            NSLayoutConstraint.constraints(withVisualFormat: "H:|[initialView]|", options: [], metrics: nil, views: ["initialView": initialView]) +
-            NSLayoutConstraint.constraints(withVisualFormat: "V:|[initialView]|", options: [], metrics: nil, views: ["initialView": initialView]) +
+            NSLayoutConstraint.constraints(withVisualFormat: "H:|[initialView]|", options: [], metrics: nil, views: viewsDict) +
+            NSLayoutConstraint.constraints(withVisualFormat: "V:|[initialView]|", options: [], metrics: nil, views: viewsDict)
+        )
+        NSLayoutConstraint.activate(
             NSLayoutConstraint.constraints(withVisualFormat: "H:|[tableView]|", options: [], metrics: nil, views: viewsDict) +
             NSLayoutConstraint.constraints(withVisualFormat: "V:|[tableView]|", options: [], metrics: nil, views: viewsDict) +
             NSLayoutConstraint.constraints(withVisualFormat: "H:|[shTableView]|", options: [], metrics: nil, views: viewsDict) +

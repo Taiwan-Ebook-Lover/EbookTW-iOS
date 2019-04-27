@@ -218,6 +218,8 @@ final class YuerManager : NSObject {
                         errorHandler(context.debugDescription)
                     case .valueNotFound(_, let context):
                         errorHandler(context.debugDescription)
+                    @unknown default:
+                        errorHandler("unknown error")
                     }
                 }
             } catch let error {
