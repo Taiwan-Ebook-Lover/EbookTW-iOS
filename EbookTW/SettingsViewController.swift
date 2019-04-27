@@ -215,6 +215,7 @@ class SettingsViewController : UITableViewController {
                 if let rowType = SettingsRowSearchHistory(rawValue: indexPath.row) {
                     switch rowType {
                     case .export:
+                        tableView.deselectRow(at: indexPath, animated: true)
                         guard let textLabel = tableView.cellForRow(at: indexPath)?.textLabel else {
                             return
                         }

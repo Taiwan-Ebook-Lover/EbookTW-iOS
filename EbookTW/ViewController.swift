@@ -211,13 +211,13 @@ final class ViewController: UIViewController {
             switch isUserScriptMode {
             case false:
                 viewType = .yuer(keyword: keyword)
+                tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
             case true:
                 viewType = .userScript(keyword: keyword)
             }
             searchHistoryManager.add(keyword: keyword)
         }
         searchBar.resignFirstResponder()    // must do after self.keyword is set
-        tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
 
         switch viewType {
         case .yuer(keyword: _):

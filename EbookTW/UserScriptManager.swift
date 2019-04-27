@@ -177,7 +177,7 @@ final class UserScriptManager : NSObject {
             assertionFailure()
             return
         }
-        let urlTaaze = URL(string: "https://www.taaze.tw/search_go.html?keyword%5B%5D=" + keywordEncoded + "&keyType%5B%5D=0&prodKind=4&prodCatId=141")!
+        let urlTaaze = URL(string: "https://www.taaze.tw/rwd_searchResult.html?keyword%5B%5D=" + keywordEncoded + "&keyType%5B%5D=1&prodKind=4")!
         let urlReadmoo = URL(string: "https://readmoo.com/search/keyword?q=" + keywordEncoded)!
         let urlBooks = URL(string: "http://search.books.com.tw/search/query/key/" + keywordEncoded + "/cat/EBA/")!
         let urlKobo = URL(string: "https://www.kobo.com/tw/zh/search?Query=" + keywordEncoded)!
