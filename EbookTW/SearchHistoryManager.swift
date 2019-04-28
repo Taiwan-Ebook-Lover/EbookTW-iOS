@@ -237,10 +237,7 @@ extension SearchHistoryManager : UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
         if isEmptyState {
             cell.textLabel?.text = searchText
-            cell.selectionStyle = .none
             return cell
-        } else {
-            cell.selectionStyle = .default
         }
         if indexPath.row < filteredArray.count {
             cell.textLabel?.text = filteredArray[indexPath.row]
