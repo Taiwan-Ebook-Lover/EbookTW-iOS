@@ -127,6 +127,7 @@ final class YuerEbookTableViewCell : UITableViewCell {
             NSLayoutConstraint.constraints(withVisualFormat: "V:|-[bookTitleLabel]-[bookPriceLabel]-|", options: .alignAllTrailing, metrics: nil, views: viewsDict) +
             NSLayoutConstraint.constraints(withVisualFormat: "H:|-[bookThumbImageView]-[bookTitleLabel]-|", options: [], metrics: nil, views: viewsDict) +
             [
+                bookTitleLabel.heightAnchor.constraint(equalTo: bookPriceLabel.heightAnchor, multiplier: 3.0),
                 bookThumbImageViewWidthConstraint,
                 centerTextLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
                 centerTextLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
