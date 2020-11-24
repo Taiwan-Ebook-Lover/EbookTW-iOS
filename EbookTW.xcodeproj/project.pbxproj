@@ -17,6 +17,7 @@
 		0485FAC61F5E97A7001E5C3D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0485FAC51F5E97A7001E5C3D /* Assets.xcassets */; };
 		0485FAC91F5E97A7001E5C3D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0485FAC71F5E97A7001E5C3D /* LaunchScreen.storyboard */; };
 		04E8D7CD2118A037001BF429 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 04E8D7CC2118A037001BF429 /* Settings.bundle */; };
+		EA2EDCEC256CBA46003761B7 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA2EDCEB256CBA46003761B7 /* AppConfig.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,7 @@
 		0485FAC81F5E97A7001E5C3D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		0485FACA1F5E97A7001E5C3D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		04E8D7CC2118A037001BF429 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
+		EA2EDCEB256CBA46003761B7 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				0485FABE1F5E97A7001E5C3D /* AppDelegate.swift */,
+				EA2EDCEB256CBA46003761B7 /* AppConfig.swift */,
 				0485FAC01F5E97A7001E5C3D /* ViewController.swift */,
 				043AB0FE1FCD317300FACF86 /* InitialView.swift */,
 				0418154722127A84001F11C8 /* SearchHistoryManager.swift */,
@@ -165,6 +168,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				043AB0FD1FCD285A00FACF86 /* YuerManager.swift in Sources */,
+				EA2EDCEC256CBA46003761B7 /* AppConfig.swift in Sources */,
 				0485FAC11F5E97A7001E5C3D /* ViewController.swift in Sources */,
 				043AB0F91FCD283500FACF86 /* UserScriptManager.swift in Sources */,
 				04448842221A5F1100939E43 /* SettingsViewController.swift in Sources */,

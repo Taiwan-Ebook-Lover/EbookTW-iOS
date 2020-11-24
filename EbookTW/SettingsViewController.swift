@@ -25,6 +25,7 @@ class SettingsViewController : UITableViewController {
     private enum SettingsRowSearchHistory : Int, CaseIterable {
         case iCloud, export
     }
+    private var searchHistoryArray = [SettingsRowSearchHistory]()
     private enum SettingsRowAdvanced : Int, CaseIterable {
         case davaSaving, userScriptMode
     }
@@ -41,6 +42,12 @@ class SettingsViewController : UITableViewController {
         tableView.register(SettingsCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         let doneItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
         navigationItem.rightBarButtonItem = doneItem
+
+        if AppConfig.isICloudEnabled {
+            searchHistoryArray = [.iCloud, .export]
+        } else {
+            searchHistoryArray = [.export]
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -118,7 +125,7 @@ class SettingsViewController : UITableViewController {
         if let sectionType = SettingsSection(rawValue: section) {
             switch sectionType {
             case .searchHistory:
-                return SettingsRowSearchHistory.allCases.count
+                return searchHistoryArray.count
             case .advanced:
                 return SettingsRowAdvanced.allCases.count
             case .about:
@@ -145,19 +152,22 @@ class SettingsViewController : UITableViewController {
         if let sectionType = SettingsSection(rawValue: indexPath.section) {
             switch sectionType {
             case .searchHistory:
-                if let rowType = SettingsRowSearchHistory(rawValue: indexPath.row) {
-                    switch rowType {
-                    case .iCloud:
-                        cell.textLabel?.text = "iCloud 同步"
-                        let iCloudSwitch = UISwitch()
-                        iCloudSwitch.isOn = UserDefaults.standard.bool(forKey: SettingsKey.isOnICloud)
-                        iCloudSwitch.addTarget(self, action: #selector(switchICloud), for: .valueChanged)
-                        cell.accessoryView = iCloudSwitch
-                    case .export:
-                        cell.textLabel?.textColor = .etw_tintColor
-                        cell.textLabel?.text = "匯出記錄"
-                        cell.selectionStyle = .default
+                let rowType = searchHistoryArray[indexPath.row]
+                switch rowType {
+                case .iCloud:
+                    cell.textLabel?.text = "iCloud 同步"
+                    let iCloudSwitch = UISwitch()
+                    iCloudSwitch.isOn = UserDefaults.standard.bool(forKey: SettingsKey.isOnICloud)
+                    iCloudSwitch.addTarget(self, action: #selector(switchICloud), for: .valueChanged)
+                    if !AppConfig.isICloudEnabled {
+                        cell.textLabel?.textColor = UIColor.lightGray
+                        iCloudSwitch.isEnabled = false
                     }
+                    cell.accessoryView = iCloudSwitch
+                case .export:
+                    cell.textLabel?.textColor = .etw_tintColor
+                    cell.textLabel?.text = "匯出記錄"
+                    cell.selectionStyle = .default
                 }
             case .advanced:
                 if let rowType = SettingsRowAdvanced(rawValue: indexPath.row) {
@@ -222,20 +232,19 @@ class SettingsViewController : UITableViewController {
         if let sectionType = SettingsSection(rawValue: indexPath.section) {
             switch sectionType {
             case .searchHistory:
-                if let rowType = SettingsRowSearchHistory(rawValue: indexPath.row) {
-                    switch rowType {
-                    case .export:
-                        tableView.deselectRow(at: indexPath, animated: true)
-                        guard let textLabel = tableView.cellForRow(at: indexPath)?.textLabel else {
-                            return
-                        }
-                        let activityViewController = UIActivityViewController(activityItems: [SearchHistoryManager.historyText], applicationActivities: nil)
-                        activityViewController.popoverPresentationController?.sourceView = textLabel
-                        activityViewController.popoverPresentationController?.sourceRect = textLabel.frame
-                        present(activityViewController, animated: true, completion: nil)
-                    default:
-                        break
+                let rowType = searchHistoryArray[indexPath.row]
+                switch rowType {
+                case .export:
+                    tableView.deselectRow(at: indexPath, animated: true)
+                    guard let textLabel = tableView.cellForRow(at: indexPath)?.textLabel else {
+                        return
                     }
+                    let activityViewController = UIActivityViewController(activityItems: [SearchHistoryManager.historyText], applicationActivities: nil)
+                    activityViewController.popoverPresentationController?.sourceView = textLabel
+                    activityViewController.popoverPresentationController?.sourceRect = textLabel.frame
+                    present(activityViewController, animated: true, completion: nil)
+                default:
+                    break
                 }
             case .about:
                 if let rowType = SettingsRowAbout(rawValue: indexPath.row) {

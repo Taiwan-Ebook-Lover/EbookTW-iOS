@@ -69,7 +69,7 @@ final class SearchHistoryManager : NSObject {
             tableView.cellLayoutMarginsFollowReadableWidth = false
         }
 
-        UserDefaults.standard.register(defaults: [SettingsKey.isOnICloud: true])
+        UserDefaults.standard.register(defaults: [SettingsKey.isOnICloud: AppConfig.isICloudEnabled])
 
         NotificationCenter.default.addObserver(self, selector: #selector(storeDidChange), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
