@@ -10,5 +10,6 @@ import Foundation
 
 struct AppConfig {
 
+    static let isDevAPI = false
     static let isICloudEnabled = false
 }

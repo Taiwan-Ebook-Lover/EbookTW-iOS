@@ -180,8 +180,17 @@ final class YuerManager : NSObject {
     }
 
     func searchEbook(keyword: String, errorHandler: @escaping (String) -> Void) {
-        guard let keywordEncoded = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-            let url = URL(string: "https://ebook.yuer.tw/search?q=" + keywordEncoded) else {
+        var urlComponent = URLComponents()
+        urlComponent.scheme = "https"
+        urlComponent.host = "ebook.yuer.tw"
+        if AppConfig.isDevAPI {
+            urlComponent.port = 8443
+        }
+        urlComponent.path = "/search"
+        urlComponent.queryItems = [     // Percent encoding is automatically done with RFC 3986
+            URLQueryItem(name: "q", value: keyword)
+        ]
+        guard let url = urlComponent.url else {
             assertionFailure()
             return
         }
