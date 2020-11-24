@@ -252,22 +252,42 @@ class SettingsViewController : UITableViewController {
                     case .website:
                         if let url = URL(string: "https://taiwan-ebook-lover.github.io") {
                             let safari = SFSafariViewController(url: url)
-                            safari.preferredBarTintColor = .etw_tintColor
-                            safari.preferredControlTintColor = .white
+                            if #available(iOS 10.0, *) {
+                                safari.preferredBarTintColor = .etw_tintColor
+                                safari.preferredControlTintColor = .white
+                            }
                             present(safari, animated: true, completion: nil)
                         }
                     case .twitter:
                         if let url = URL(string: "https://twitter.com/TaiwanEBook") {
-                            let safari = SFSafariViewController(url: url)
-                            safari.preferredBarTintColor = .etw_tintColor
-                            safari.preferredControlTintColor = .white
-                            present(safari, animated: true, completion: nil)
+                            let openInSafari = {
+                                let safari = SFSafariViewController(url: url)
+                                if #available(iOS 10.0, *) {
+                                    safari.preferredBarTintColor = .etw_tintColor
+                                    safari.preferredControlTintColor = .white
+                                }
+                                self.present(safari, animated: true, completion: nil)
+                            }
+                            if #available(iOS 10.0, *) {
+                                let options = [UIApplication.OpenExternalURLOptionsKey.universalLinksOnly : true]
+                                UIApplication.shared.open(url, options: options) { (success) in
+                                    if !success {
+                                        openInSafari()
+                                        return
+                                    }
+                                    tableView.deselectRow(at: indexPath, animated: true)
+                                }
+                            } else {
+                                openInSafari()
+                            }
                         }
                     case .privacyPolicy:
                         if let url = URL(string: "https://denkeni.org/ebook-tw-privacy-policy.html") {
                             let safari = SFSafariViewController(url: url)
-                            safari.preferredBarTintColor = .etw_tintColor
-                            safari.preferredControlTintColor = .white
+                            if #available(iOS 10.0, *) {
+                                safari.preferredBarTintColor = .etw_tintColor
+                                safari.preferredControlTintColor = .white
+                            }
                             present(safari, animated: true, completion: nil)
                         }
                     default:
