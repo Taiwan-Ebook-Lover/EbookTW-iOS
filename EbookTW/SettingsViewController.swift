@@ -130,8 +130,13 @@ class SettingsViewController : UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath)
-        cell.textLabel?.textColor = .black
-        cell.detailTextLabel?.textColor = .black
+        if #available(iOS 13.0, *) {
+            cell.textLabel?.textColor = .label
+            cell.detailTextLabel?.textColor = .label
+        } else {
+            cell.textLabel?.textColor = .black
+            cell.detailTextLabel?.textColor = .black
+        }
         cell.textLabel?.text = nil
         cell.detailTextLabel?.text = nil
         cell.accessoryType = .none
@@ -165,8 +170,13 @@ class SettingsViewController : UITableViewController {
                         dataSavingSwitch.addTarget(self, action: #selector(switchDataSaving), for: .valueChanged)
                         cell.accessoryView = dataSavingSwitch
                         if UserDefaults.standard.bool(forKey: SettingsKey.isUserScriptMode) == true {
-                            cell.textLabel?.textColor = .lightGray
-                            cell.detailTextLabel?.textColor = .lightGray
+                            if #available(iOS 13.0, *) {
+                                cell.textLabel?.textColor = .systemGray2
+                                cell.detailTextLabel?.textColor = .systemGray2
+                            } else {
+                                cell.textLabel?.textColor = .lightGray
+                                cell.detailTextLabel?.textColor = .lightGray
+                            }
                             dataSavingSwitch.isEnabled = false
                         }
                     case .userScriptMode:

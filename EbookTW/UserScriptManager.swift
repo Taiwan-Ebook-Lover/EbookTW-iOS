@@ -267,6 +267,12 @@ extension UserScriptManager : UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int){
-        view.tintColor = UIColor(red:0.63, green:0.84, blue:0.81, alpha:1.0)   // #A0D5CE
+        if let header = view as? UITableViewHeaderFooterView {
+            if #available(iOS 13.0, *) {
+                header.textLabel?.textColor = .label
+            } else {
+                header.textLabel?.textColor = .black
+            }
+        }
     }
 }

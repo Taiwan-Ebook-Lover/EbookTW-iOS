@@ -75,7 +75,11 @@ final class YuerEbookTableViewCell : UITableViewCell {
                 centerTextLabel.text = nil
                 selectionStyle = .default
             case .loading:
-                centerTextLabel.textColor = .black
+                if #available(iOS 13.0, *) {
+                    centerTextLabel.textColor = .label
+                } else {
+                    centerTextLabel.textColor = .black
+                }
                 centerTextLabel.text = "搜尋中..."
                 selectionStyle = .none
             case .expand:
@@ -87,7 +91,11 @@ final class YuerEbookTableViewCell : UITableViewCell {
                 centerTextLabel.text = "收合結果"
                 selectionStyle = .default
             case .noResult:
-                centerTextLabel.textColor = .black
+                if #available(iOS 13.0, *) {
+                    centerTextLabel.textColor = .label
+                } else {
+                    centerTextLabel.textColor = .black
+                }
                 centerTextLabel.text = "無搜尋結果"
                 selectionStyle = .none
             }
@@ -511,7 +519,11 @@ extension YuerManager : UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int){
         if let header = view as? UITableViewHeaderFooterView {
-            header.textLabel?.textColor = .black
+            if #available(iOS 13.0, *) {
+                header.textLabel?.textColor = .label
+            } else {
+                header.textLabel?.textColor = .black
+            }
         }
     }
 }

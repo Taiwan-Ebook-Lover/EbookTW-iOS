@@ -15,13 +15,21 @@ final class InitialView : UIScrollView {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        backgroundColor = .white
+        if #available(iOS 13.0, *) {
+            backgroundColor = .systemBackground
+        } else {
+            backgroundColor = .white
+        }
         alwaysBounceVertical = true
         keyboardDismissMode = .interactive
 
         label.numberOfLines = 0
         label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = .gray
+        if #available(iOS 13.0, *) {
+            label.textColor = .systemGray
+        } else {
+            label.textColor = .gray
+        }
         label.textAlignment = .center
         label.text = """
         Readmoo

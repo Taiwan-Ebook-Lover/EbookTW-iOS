@@ -165,6 +165,9 @@ final class ViewController: UIViewController {
         tableView.keyboardDismissMode = .interactive
         tableView.register(YuerEbookTableViewCell.self, forCellReuseIdentifier: YuerEbookTableViewCell.cellReuseIdentifier)
 
+        if #available(iOS 13.0, *) {
+            searchBar.searchTextField.backgroundColor = .systemBackground
+        }
         searchBar.placeholder = "輸入書名 / ISBN"
         searchBar.autocorrectionType = .yes
         searchBar.delegate = self

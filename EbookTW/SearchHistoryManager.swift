@@ -209,6 +209,11 @@ extension SearchHistoryManager : UITableViewDataSource {
         let header = UIToolbar()
         let titleLabel = UILabel()
         titleLabel.textColor = .darkGray
+        if #available(iOS 13.0, *) {
+            titleLabel.textColor = .systemGray
+        } else {
+            titleLabel.textColor = .gray
+        }
         titleLabel.text = "搜尋記錄"
         if #available(iOS 11.0, *) {
         } else {
