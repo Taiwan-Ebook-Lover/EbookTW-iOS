@@ -3,7 +3,7 @@
 //  EbookTW
 //
 //  Created by denkeni on 28/11/2017.
-//  Copyright © 2017 Nandalu. All rights reserved.
+//  Copyright © 2017 Denken. All rights reserved.
 //
 
 import UIKit
@@ -31,15 +31,17 @@ final class InitialView : UIScrollView {
             label.textColor = .gray
         }
         label.textAlignment = .center
+        // TODO: Get bookstores from API /bookstores
         label.text = """
-        Readmoo
-        Kobo
-        TAAZE
-        博客來
-        BookWalker
-        Google Play 圖書
+        Readmoo 讀墨
+        TAAZE 讀冊生活
+        BOOKWALKER
+        樂天 Kobo
         Pubu
         HyRead
+        Amazon Kindle
+        Google Play 圖書
+        博客來
         """
 
         etw_add(subViews: [label])

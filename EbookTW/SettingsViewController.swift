@@ -3,7 +3,7 @@
 //  EbookTW
 //
 //  Created by denkeni on 2019/2/18.
-//  Copyright © 2019 Nandalu. All rights reserved.
+//  Copyright © 2019 Denken. All rights reserved.
 //
 
 import UIKit

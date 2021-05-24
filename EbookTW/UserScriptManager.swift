@@ -3,12 +3,16 @@
 //  EbookTW
 //
 //  Created by denkeni on 28/11/2017.
-//  Copyright © 2017 Nandalu. All rights reserved.
+//  Copyright © 2017 Denken. All rights reserved.
 //
 
 import UIKit
 import WebKit
 import SafariServices
+
+enum EbookProvider : Int, CaseIterable {
+    case readmoo, kobo, taaze, books, bookwalker, googleplay, pubu, hyread
+}
 
 final class UserScriptManager : NSObject {
 

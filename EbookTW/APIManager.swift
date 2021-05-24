@@ -1,24 +1,28 @@
 //
-//  YuerManager.swift
+//  APIManager.swift
 //  EbookTW
 //
 //  Created by denkeni on 28/11/2017.
-//  Copyright © 2017 Nandalu. All rights reserved.
+//  Copyright © 2017 Denken. All rights reserved.
 //
 
 import UIKit
 import SafariServices
 
-private struct YuerEbookResult : Codable {
+private struct EbookResponse : Codable {
 
-    let booksCompany : [Book]
-    let readmoo : [Book]
-    let kobo : [Book]
-    let taaze : [Book]
-    let bookWalker : [Book]
-    let playStore : [Book]
-    let pubu : [Book]
-    let hyread : [Book]
+    let results : [Result]
+
+    /// Bookstores
+    struct Result : Codable {
+        let bookstore : Bookstore
+        let books : [Book]
+    }
+
+    struct Bookstore : Codable {
+        let id : String
+        let displayName : String
+    }
 
     struct Book : Codable {
         let thumbnail : String
@@ -27,32 +31,9 @@ private struct YuerEbookResult : Codable {
         let priceCurrency : String
         let price : Float
     }
-
-    func count(of ebookProvider: EbookProvider) -> Int {
-        let count : Int
-        switch ebookProvider {
-        case .taaze:
-            count = taaze.count
-        case .readmoo:
-            count = readmoo.count
-        case .books:
-            count = booksCompany.count
-        case .kobo:
-            count = kobo.count
-        case .googleplay:
-            count = playStore.count
-        case .bookwalker:
-            count = bookWalker.count
-        case .pubu:
-            count = pubu.count
-        case .hyread:
-            count = hyread.count
-        }
-        return count
-    }
 }
 
-private struct YuerEbookResultError : Codable {
+private struct EbookResultError : Codable {
 
     let message : String
 }
@@ -61,14 +42,14 @@ private enum EbookProviderViewState {
     case loading, collapsed, expanded, oneResult, noResult
 }
 
-enum YuerEbookTableViewCellType {
+enum EbookTableViewCellType {
     case book, loading, expand, collapse, noResult
 }
 
-final class YuerEbookTableViewCell : UITableViewCell {
+final class EbookTableViewCell : UITableViewCell {
 
-    static let cellReuseIdentifier = "YuerEbookTableViewCell"
-    var type : YuerEbookTableViewCellType = .book {
+    static let cellReuseIdentifier = "EbookTableViewCell"
+    var type : EbookTableViewCellType = .book {
         didSet {
             switch type {
             case .book:
@@ -147,13 +128,13 @@ final class YuerEbookTableViewCell : UITableViewCell {
     }
 }
 
-// MARK: - YuerManager
+// MARK: - APIManager
 
-final class YuerManager : NSObject {
+final class APIManager : NSObject {
 
     private weak var tableView : UITableView?
-    private var result : YuerEbookResult? = nil
-    private var resultStates = [EbookProvider: EbookProviderViewState]()
+    private var response : EbookResponse? = nil
+    private var resultStates = [String: EbookProviderViewState]()
     private var showBookImageView : Bool = true
 
     private static let session : URLSession = {
@@ -186,7 +167,7 @@ final class YuerManager : NSObject {
         if AppConfig.isDevAPI {
             urlComponent.port = 8443
         }
-        urlComponent.path = "/search"
+        urlComponent.path = "/v1/searches"
         urlComponent.queryItems = [     // Percent encoding is automatically done with RFC 3986
             URLQueryItem(name: "q", value: keyword)
         ]
@@ -194,11 +175,13 @@ final class YuerManager : NSObject {
             assertionFailure()
             return
         }
-        result = nil
-        resultStates = [EbookProvider: EbookProviderViewState]()
-        showBookImageView = !(UserDefaults.standard.bool(forKey: SettingsKey.isDataSaving))
-        tableView?.reloadData()
-        let task = YuerManager.session.dataTask(with: url) { (data, urlResponse, error) in
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST";
+        self.response = nil
+        self.resultStates = [String: EbookProviderViewState]()
+        self.showBookImageView = !(UserDefaults.standard.bool(forKey: SettingsKey.isDataSaving))
+        self.tableView?.reloadData()
+        let task = APIManager.session.dataTask(with: request) { (data, urlResponse, error) in
             if let error = error {
                 errorHandler(error.localizedDescription)
                 return
@@ -206,7 +189,8 @@ final class YuerManager : NSObject {
             // From Settings.bundle
             let isDebugMode = UserDefaults.standard.bool(forKey: "debugMode")
             if isDebugMode {
-                if let httpUrlResponse = urlResponse as? HTTPURLResponse, httpUrlResponse.statusCode != 200 {
+                let successfulStatusCodes = 200..<300
+                if let httpUrlResponse = urlResponse as? HTTPURLResponse, !successfulStatusCodes.contains(httpUrlResponse.statusCode) {
                     errorHandler("HTTP Error \(httpUrlResponse.statusCode)")
                     return
                 }
@@ -216,11 +200,11 @@ final class YuerManager : NSObject {
                 return
             }
             let jsonDecoder = JSONDecoder()
-            var yuerEbookResult : YuerEbookResult? = nil
+            var ebookResponse : EbookResponse? = nil
             do {
-                yuerEbookResult = try jsonDecoder.decode(YuerEbookResult.self, from: data)
+                ebookResponse = try jsonDecoder.decode(EbookResponse.self, from: data)
             } catch let error as DecodingError {
-                if let ebookResultError = try? jsonDecoder.decode(YuerEbookResultError.self, from: data) {
+                if let ebookResultError = try? jsonDecoder.decode(EbookResultError.self, from: data) {
                     errorHandler(ebookResultError.message)
                     return
                 }
@@ -243,22 +227,21 @@ final class YuerManager : NSObject {
             } catch let error {
                 print(error)
             }
-            guard let ebookResult = yuerEbookResult else {
+            guard let ebookResponse = ebookResponse else {
                 errorHandler("搜尋「\(keyword)」時出現錯誤。麻煩回報給開發者，謝謝！")
                 return
             }
-            self.result = ebookResult
-            for index in 0...(EbookProvider.allCases.count - 1) {
-                if let ebookProvider = EbookProvider(rawValue: index) {
-                    let count = ebookResult.count(of: ebookProvider)
-                    switch count {
-                    case 0:
-                        self.resultStates[ebookProvider] = .noResult
-                    case 1:
-                        self.resultStates[ebookProvider] = .oneResult
-                    default:
-                        self.resultStates[ebookProvider] = .collapsed
-                    }
+            self.response = ebookResponse
+            for result in ebookResponse.results {
+                let bookstoreID = result.bookstore.id
+                let count = result.books.count
+                switch count {
+                case 0:
+                    self.resultStates[bookstoreID] = .noResult
+                case 1:
+                    self.resultStates[bookstoreID] = .oneResult
+                default:
+                    self.resultStates[bookstoreID] = .collapsed
                 }
             }
             DispatchQueue.main.async {
@@ -271,18 +254,22 @@ final class YuerManager : NSObject {
 
 // MARK: - UITableViewDataSource
 
-extension YuerManager : UITableViewDataSource {
+extension APIManager : UITableViewDataSource {
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        return EbookProvider.allCases.count
+        guard let response = self.response else {
+            return 1    // .loading
+        }
+        return response.results.count
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let result = result, let ebookProvider = EbookProvider(rawValue: section) else {
-            return 1
+        guard let result = self.response?.results[section] else {
+            return 1    // .loading
         }
-        let count = result.count(of: ebookProvider)
-        if let resultState = resultStates[ebookProvider] {
+        let bookstoreID = result.bookstore.id
+        let count = result.books.count
+        if let resultState = self.resultStates[bookstoreID] {
             switch resultState {
             case .collapsed:
                 return 2
@@ -297,47 +284,28 @@ extension YuerManager : UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if let ebookProvider = EbookProvider(rawValue: section) {
-            switch ebookProvider {
-            case .taaze:
-                return "TAAZE"
-            case .readmoo:
-                return "Readmoo"
-            case .books:
-                return "博客來"
-            case .kobo:
-                return "Kobo"
-            case .bookwalker:
-                return "BookWalker"
-            case .googleplay:
-                return "Google Play 圖書"
-            case .pubu:
-                return "Pubu"
-            case .hyread:
-                return "HyRead"
-            }
+        guard let result = self.response?.results[section] else {
+            return nil
         }
-        assertionFailure()
-        return String()
+        let bookstoreDisplayName = result.bookstore.displayName
+        return bookstoreDisplayName
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: YuerEbookTableViewCell.cellReuseIdentifier, for: indexPath) as! YuerEbookTableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: EbookTableViewCell.cellReuseIdentifier, for: indexPath) as! EbookTableViewCell
         cell.bookTitleLabel.text = nil
         cell.bookPriceLabel.text = nil
         cell.bookThumbImageView.image = nil
         cell.bookThumbImageLink = nil
         cell.type = .book   // default value
-        guard let ebookProvider = EbookProvider(rawValue: indexPath.section) else {
-            assertionFailure()
-            return cell
-        }
-        guard let result = result else {
+        guard let response = self.response else {
             cell.type = .loading
             return cell
         }
+        let result = response.results[indexPath.section]
+        let bookstoreID = result.bookstore.id
         let row = indexPath.row
-        if let viewState = resultStates[ebookProvider] {
+        if let viewState = resultStates[bookstoreID] {
             switch viewState {
             case .collapsed:
                 if row == 1 {
@@ -345,7 +313,7 @@ extension YuerManager : UITableViewDataSource {
                     return cell
                 }
             case .expanded:
-                if row == result.count(of: ebookProvider) {
+                if row == result.books.count {
                     cell.type = .collapse
                     return cell
                 }
@@ -357,29 +325,11 @@ extension YuerManager : UITableViewDataSource {
             }
         }
         // .book: continue to show book details below
-        if !(row < result.count(of: ebookProvider)) {
+        if !(row < result.books.count) {
             assertionFailure()
             return cell
         }
-        let book : YuerEbookResult.Book
-        switch ebookProvider {
-        case .taaze:
-            book = result.taaze[row]
-        case .readmoo:
-            book = result.readmoo[row]
-        case .books:
-            book = result.booksCompany[row]
-        case .kobo:
-            book = result.kobo[row]
-        case .bookwalker:
-            book = result.bookWalker[row]
-        case .googleplay:
-            book = result.playStore[row]
-        case .pubu:
-            book = result.pubu[row]
-        case .hyread:
-            book = result.hyread[row]
-        }
+        let book = result.books[row]
         cell.bookTitleLabel.text = book.title
         cell.bookPriceLabel.text = String(format: "%.0f %@", book.price, book.priceCurrency)
         cell.bookThumbImageLink = book.thumbnail
@@ -412,28 +362,24 @@ extension YuerManager : UITableViewDataSource {
 
 // MARK: - UITableViewDelegate
 
-extension YuerManager : UITableViewDelegate {
+extension APIManager : UITableViewDelegate {
 
     // Note: we don't use estimatedHeightForRowAt
     // because we can't unify image size of different EbookProvider
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        guard let ebookProvider = EbookProvider(rawValue: indexPath.section) else {
-            assertionFailure()
-            return 0
+        guard let result = self.response?.results[indexPath.section] else {
+            return 44.0 // .loading
         }
+        let bookstoreID = result.bookstore.id
         let row = indexPath.row
-        if let viewState = resultStates[ebookProvider] {
+        if let viewState = resultStates[bookstoreID] {
             switch viewState {
             case .collapsed:
                 if row == 1 {
                     return 44.0
                 }
             case .expanded:
-                guard let result = result else {
-                    assertionFailure()
-                    return 0
-                }
-                if row == result.count(of: ebookProvider) {
+                if row == result.books.count {
                     return 44.0
                 }
             default:
@@ -447,18 +393,19 @@ extension YuerManager : UITableViewDelegate {
         StoreReview.resetTimer()
         let section = indexPath.section
         let row = indexPath.row
-        guard let result = result, let ebookProvider = EbookProvider(rawValue: indexPath.section) else {
+        guard let result = self.response?.results[section] else {
             return
         }
-        if let viewState = resultStates[ebookProvider] {
+        let bookstoreID = result.bookstore.id
+        if let viewState = resultStates[bookstoreID] {
             switch viewState {
             case .noResult:
                 return
             case .collapsed:
                 if row == 1 {
-                    resultStates[ebookProvider] = .expanded
+                    resultStates[bookstoreID] = .expanded
                     var insertIndexPaths = [IndexPath]()
-                    for rowIndex in 1...result.count(of: ebookProvider) {
+                    for rowIndex in 1...result.books.count {
                         insertIndexPaths.append(IndexPath(row: rowIndex, section: section))
                     }
                     // expanding
@@ -469,10 +416,10 @@ extension YuerManager : UITableViewDelegate {
                     return
                 }
             case .expanded:
-                if row == result.count(of: ebookProvider) {
-                    self.resultStates[ebookProvider] = .collapsed
+                if row == result.books.count {
+                    self.resultStates[bookstoreID] = .collapsed
                     var deleteIndexPaths = [IndexPath]()
-                    for rowIndex in 1...result.count(of: ebookProvider) {
+                    for rowIndex in 1...result.books.count {
                         deleteIndexPaths.append(IndexPath(row: rowIndex, section: section))
                     }
                     // collapsing
@@ -495,28 +442,10 @@ extension YuerManager : UITableViewDelegate {
                 break   // continue to show book link below
             }
         }
-        if !(row < result.count(of: ebookProvider)) {
+        if !(row < result.books.count) {
             assertionFailure()
         }
-        let book : YuerEbookResult.Book
-        switch ebookProvider {
-        case .taaze:
-            book = result.taaze[row]
-        case .readmoo:
-            book = result.readmoo[row]
-        case .books:
-            book = result.booksCompany[row]
-        case .kobo:
-            book = result.kobo[row]
-        case .bookwalker:
-            book = result.bookWalker[row]
-        case .googleplay:
-            book = result.playStore[row]
-        case .pubu:
-            book = result.pubu[row]
-        case .hyread:
-            book = result.hyread[row]
-        }
+        let book = result.books[row]
         guard let url = URL(string: book.link) else {
             return
         }
@@ -539,7 +468,7 @@ extension YuerManager : UITableViewDelegate {
 
 // MARK: - UIScrollViewDelegate
 
-extension YuerManager : UIScrollViewDelegate {
+extension APIManager : UIScrollViewDelegate {
 
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         StoreReview.resetTimer()

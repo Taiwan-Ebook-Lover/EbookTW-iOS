@@ -3,20 +3,16 @@
 //  EbookTW
 //
 //  Created by denkeni on 05/09/2017.
-//  Copyright © 2017 Nandalu. All rights reserved.
+//  Copyright © 2017 Denken. All rights reserved.
 //
 
 import UIKit
 import SafariServices
 import StoreKit
 
-enum EbookProvider : Int, CaseIterable {
-    case readmoo, kobo, taaze, books, bookwalker, googleplay, pubu, hyread
-}
-
 enum ViewControllerType {
     case initial
-    case yuer(keyword: String)
+    case api(keyword: String)
     case userScript(keyword: String)
 }
 
@@ -60,12 +56,12 @@ final class ViewController: UIViewController {
             case .initial:
                 tableView.isHidden = true
                 initialView.isHidden = false
-            case .yuer(keyword: let keyword):
+            case .api(keyword: let keyword):
                 tableView.isHidden = false
                 initialView.isHidden = true
-                tableView.dataSource = yuerManager
-                tableView.delegate = yuerManager
-                yuerManager.searchEbook(keyword: keyword, errorHandler: { (errorString) in
+                tableView.dataSource = apiManager
+                tableView.delegate = apiManager
+                apiManager.searchEbook(keyword: keyword, errorHandler: { (errorString) in
                     let errorMessage : String = {
                         if UIDevice.current.userInterfaceIdiom == .phone {
                             return "您是否要暫時改用舊版模式？"
@@ -78,7 +74,7 @@ final class ViewController: UIViewController {
                         self.viewType = .userScript(keyword: keyword)
                     })
                     let retryAction = UIAlertAction(title: "重試", style: .default, handler: { (alertAction) in
-                        self.viewType = .yuer(keyword: keyword)
+                        self.viewType = .api(keyword: keyword)
                     })
                     let cancelAction = UIAlertAction(title: "取消", style: .cancel, handler: { (alertAction) in
                         self.viewType = .initial
@@ -108,8 +104,8 @@ final class ViewController: UIViewController {
     private lazy var userScriptManager : UserScriptManager = {
         return UserScriptManager()
     }()
-    private lazy var yuerManager : YuerManager = {
-       return YuerManager(tableView: tableView)
+    private lazy var apiManager : APIManager = {
+       return APIManager(tableView: tableView)
     }()
     private lazy var searchHistoryManager : SearchHistoryManager = {
         return SearchHistoryManager(vc: self)
@@ -163,7 +159,7 @@ final class ViewController: UIViewController {
         tableView.cellLayoutMarginsFollowReadableWidth = true
 
         tableView.keyboardDismissMode = .interactive
-        tableView.register(YuerEbookTableViewCell.self, forCellReuseIdentifier: YuerEbookTableViewCell.cellReuseIdentifier)
+        tableView.register(EbookTableViewCell.self, forCellReuseIdentifier: EbookTableViewCell.cellReuseIdentifier)
 
         if #available(iOS 13.0, *) {
             searchBar.searchTextField.backgroundColor = .systemBackground
@@ -213,7 +209,7 @@ final class ViewController: UIViewController {
             let isUserScriptMode = UserDefaults.standard.bool(forKey: SettingsKey.isUserScriptMode)
             switch isUserScriptMode {
             case false:
-                viewType = .yuer(keyword: keyword)
+                viewType = .api(keyword: keyword)
                 tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
             case true:
                 viewType = .userScript(keyword: keyword)
@@ -223,7 +219,7 @@ final class ViewController: UIViewController {
         searchBar.resignFirstResponder()    // must do after self.keyword is set
 
         switch viewType {
-        case .yuer(keyword: _):
+        case .api(keyword: _):
             navigationItem.rightBarButtonItem = shareItem   // must do after searchBar.resignFirstResponder()
         default:
             break
@@ -240,7 +236,7 @@ final class ViewController: UIViewController {
 
     @objc private func share() {
         switch viewType {
-        case .yuer(keyword: let keyword):
+        case .api(keyword: let keyword):
             if let keywordEncoded = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let bookURL = URL(string: "https://taiwan-ebook-lover.github.io/search?q=\(keywordEncoded)") {
                 let activityViewController = UIActivityViewController(activityItems: [bookURL], applicationActivities: nil)
                 activityViewController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
