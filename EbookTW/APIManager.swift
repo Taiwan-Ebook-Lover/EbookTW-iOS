@@ -17,11 +17,14 @@ private struct EbookResponse : Codable {
     struct Result : Codable {
         let bookstore : Bookstore
         let books : [Book]
+        let isOkay : Bool
+        let status : String
     }
 
     struct Bookstore : Codable {
         let id : String
         let displayName : String
+        let isOnline : Bool
     }
 
     struct Book : Codable {
@@ -39,11 +42,15 @@ private struct EbookResultError : Codable {
 }
 
 private enum EbookProviderViewState {
-    case loading, collapsed, expanded, oneResult, noResult
+    case loading, collapsed, expanded, noResult
+    case notOnline  // developer turned off for crawler reason
+    case notOkay    // crawler failed to parse
 }
 
 enum EbookTableViewCellType {
-    case book, loading, expand, collapse, noResult
+    case book
+    case text(text: String)
+    case action(text: String)
 }
 
 final class EbookTableViewCell : UITableViewCell {
@@ -55,30 +62,18 @@ final class EbookTableViewCell : UITableViewCell {
             case .book:
                 centerTextLabel.text = nil
                 selectionStyle = .default
-            case .loading:
+            case let .text(text):
                 if #available(iOS 13.0, *) {
                     centerTextLabel.textColor = .label
                 } else {
                     centerTextLabel.textColor = .black
                 }
-                centerTextLabel.text = "搜尋中..."
+                centerTextLabel.text = text
                 selectionStyle = .none
-            case .expand:
+            case let .action(text):
                 centerTextLabel.textColor = .etw_tintColor
-                centerTextLabel.text = "顯示更多"
+                centerTextLabel.text = text
                 selectionStyle = .default
-            case .collapse:
-                centerTextLabel.textColor = .etw_tintColor
-                centerTextLabel.text = "收合結果"
-                selectionStyle = .default
-            case .noResult:
-                if #available(iOS 13.0, *) {
-                    centerTextLabel.textColor = .label
-                } else {
-                    centerTextLabel.textColor = .black
-                }
-                centerTextLabel.text = "無搜尋結果"
-                selectionStyle = .none
             }
         }
     }
@@ -186,12 +181,23 @@ final class APIManager : NSObject {
                 errorHandler(error.localizedDescription)
                 return
             }
+            let jsonDecoder = JSONDecoder()
             // From Settings.bundle
             let isDebugMode = UserDefaults.standard.bool(forKey: "debugMode")
             if isDebugMode {
                 let successfulStatusCodes = 200..<300
                 if let httpUrlResponse = urlResponse as? HTTPURLResponse, !successfulStatusCodes.contains(httpUrlResponse.statusCode) {
-                    errorHandler("HTTP Error \(httpUrlResponse.statusCode)")
+                    var errorMessage = "HTTP Error \(httpUrlResponse.statusCode)"
+                    if let data = data {
+                        if let ebookResultError = try? jsonDecoder.decode(EbookResultError.self, from: data) {
+                            errorMessage += "\n\(ebookResultError.message)"
+                        } else {
+                            errorMessage += "\nNot error message"
+                        }
+                    } else {
+                        errorMessage += "\nNo data"
+                    }
+                    errorHandler(errorMessage)
                     return
                 }
             }
@@ -199,7 +205,6 @@ final class APIManager : NSObject {
                 errorHandler("No data")
                 return
             }
-            let jsonDecoder = JSONDecoder()
             var ebookResponse : EbookResponse? = nil
             do {
                 ebookResponse = try jsonDecoder.decode(EbookResponse.self, from: data)
@@ -237,9 +242,13 @@ final class APIManager : NSObject {
                 let count = result.books.count
                 switch count {
                 case 0:
-                    self.resultStates[bookstoreID] = .noResult
-                case 1:
-                    self.resultStates[bookstoreID] = .oneResult
+                    if !result.bookstore.isOnline {
+                        self.resultStates[bookstoreID] = .notOnline
+                    } else if !result.isOkay {
+                        self.resultStates[bookstoreID] = .notOkay
+                    } else {
+                        self.resultStates[bookstoreID] = .noResult
+                    }
                 default:
                     self.resultStates[bookstoreID] = .collapsed
                 }
@@ -299,7 +308,7 @@ extension APIManager : UITableViewDataSource {
         cell.bookThumbImageLink = nil
         cell.type = .book   // default value
         guard let response = self.response else {
-            cell.type = .loading
+            cell.type = .text(text: "搜尋中...")
             return cell
         }
         let result = response.results[indexPath.section]
@@ -309,16 +318,23 @@ extension APIManager : UITableViewDataSource {
             switch viewState {
             case .collapsed:
                 if row == 1 {
-                    cell.type = .expand
+                    cell.type = .action(text: "顯示更多")
                     return cell
                 }
             case .expanded:
                 if row == result.books.count {
-                    cell.type = .collapse
+                    cell.type = .action(text: "收合結果")
                     return cell
                 }
             case .noResult:
-                cell.type = .noResult
+                cell.type = .text(text: "無搜尋結果")
+                return cell
+            case .notOnline:
+                cell.type = .text(text: "暫時停用")
+                return cell
+            case .notOkay:
+                let status = result.status
+                cell.type = .text(text: "搜尋失敗：\(status)")
                 return cell
             default:
                 break
@@ -399,7 +415,7 @@ extension APIManager : UITableViewDelegate {
         let bookstoreID = result.bookstore.id
         if let viewState = resultStates[bookstoreID] {
             switch viewState {
-            case .noResult:
+            case .noResult, .notOnline, .notOkay:
                 return
             case .collapsed:
                 if row == 1 {
