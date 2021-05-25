@@ -42,7 +42,7 @@ private struct EbookResultError : Codable {
 }
 
 private enum EbookProviderViewState {
-    case loading, collapsed, expanded, noResult
+    case loading, collapsed, expanded, oneResult, noResult
     case notOnline  // developer turned off for crawler reason
     case notOkay    // crawler failed to parse
 }
@@ -249,6 +249,8 @@ final class APIManager : NSObject {
                     } else {
                         self.resultStates[bookstoreID] = .noResult
                     }
+                case 1:
+                    self.resultStates[bookstoreID] = .oneResult
                 default:
                     self.resultStates[bookstoreID] = .collapsed
                 }
