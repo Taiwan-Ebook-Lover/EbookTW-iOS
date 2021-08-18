@@ -159,7 +159,6 @@ final class ViewController: UIViewController {
         tableView.cellLayoutMarginsFollowReadableWidth = true
 
         tableView.keyboardDismissMode = .interactive
-        tableView.register(EbookTableViewCell.self, forCellReuseIdentifier: EbookTableViewCell.cellReuseIdentifier)
 
         if #available(iOS 13.0, *) {
             searchBar.searchTextField.backgroundColor = .systemBackground

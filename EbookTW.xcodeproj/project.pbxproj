@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,6 +18,7 @@
 		0485FAC91F5E97A7001E5C3D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0485FAC71F5E97A7001E5C3D /* LaunchScreen.storyboard */; };
 		04E8D7CD2118A037001BF429 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 04E8D7CC2118A037001BF429 /* Settings.bundle */; };
 		EA2EDCEC256CBA46003761B7 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA2EDCEB256CBA46003761B7 /* AppConfig.swift */; };
+		EA9206A826CCDB2900ED1F86 /* EbookTWAPI in Frameworks */ = {isa = PBXBuildFile; productRef = EA9206A726CCDB2900ED1F86 /* EbookTWAPI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		0485FACA1F5E97A7001E5C3D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		04E8D7CC2118A037001BF429 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		EA2EDCEB256CBA46003761B7 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		EA81AE6B26CCD8A100021D52 /* EbookTWAPI */ = {isa = PBXFileReference; lastKnownFileType = text; path = EbookTWAPI; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +45,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EA9206A826CCDB2900ED1F86 /* EbookTWAPI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,7 +56,9 @@
 			isa = PBXGroup;
 			children = (
 				0485FABD1F5E97A7001E5C3D /* EbookTW */,
+				EA81AE6B26CCD8A100021D52 /* EbookTWAPI */,
 				0485FABC1F5E97A7001E5C3D /* Products */,
+				EA81AE6C26CCDA1A00021D52 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -85,6 +90,13 @@
 			path = EbookTW;
 			sourceTree = "<group>";
 		};
+		EA81AE6C26CCDA1A00021D52 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -101,6 +113,9 @@
 			dependencies = (
 			);
 			name = EbookTW;
+			packageProductDependencies = (
+				EA9206A726CCDB2900ED1F86 /* EbookTWAPI */,
+			);
 			productName = EbookTW;
 			productReference = 0485FABB1F5E97A7001E5C3D /* EbookTW.app */;
 			productType = "com.apple.product-type.application";
@@ -113,7 +128,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
 				LastUpgradeCheck = 1220;
-				ORGANIZATIONNAME = Nandalu;
+				ORGANIZATIONNAME = Denken;
 				TargetAttributes = {
 					0485FABA1F5E97A7001E5C3D = {
 						CreatedOnToolsVersion = 8.3.3;
@@ -302,7 +317,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -317,7 +333,10 @@
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = EbookTW/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 3.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = denkeni.EbookTW;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -335,7 +354,10 @@
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = EbookTW/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 3.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = denkeni.EbookTW;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -366,6 +388,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EA9206A726CCDB2900ED1F86 /* EbookTWAPI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = EbookTWAPI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 0485FAB31F5E97A7001E5C3D /* Project object */;
 }

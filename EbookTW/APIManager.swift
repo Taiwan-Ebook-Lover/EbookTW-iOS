@@ -8,38 +8,7 @@
 
 import UIKit
 import SafariServices
-
-private struct EbookResponse : Codable {
-
-    let results : [Result]
-
-    /// Bookstores
-    struct Result : Codable {
-        let bookstore : Bookstore
-        let books : [Book]
-        let isOkay : Bool
-        let status : String
-    }
-
-    struct Bookstore : Codable {
-        let id : String
-        let displayName : String
-        let isOnline : Bool
-    }
-
-    struct Book : Codable {
-        let thumbnail : String
-        let title : String
-        let link : String
-        let priceCurrency : String
-        let price : Float
-    }
-}
-
-private struct EbookResultError : Codable {
-
-    let message : String
-}
+import EbookTWAPI
 
 private enum EbookProviderViewState {
     case loading, collapsed, expanded, oneResult, noResult
@@ -47,13 +16,13 @@ private enum EbookProviderViewState {
     case notOkay    // crawler failed to parse
 }
 
-enum EbookTableViewCellType {
+private enum EbookTableViewCellType {
     case book
     case text(text: String)
     case action(text: String)
 }
 
-final class EbookTableViewCell : UITableViewCell {
+private final class EbookTableViewCell : UITableViewCell {
 
     static let cellReuseIdentifier = "EbookTableViewCell"
     var type : EbookTableViewCellType = .book {
@@ -128,11 +97,16 @@ final class EbookTableViewCell : UITableViewCell {
 final class APIManager : NSObject {
 
     private weak var tableView : UITableView?
+    private let apiClient: APIClient
+
     private var response : EbookResponse? = nil
     private var resultStates = [String: EbookProviderViewState]()
     private var showBookImageView : Bool = true
 
-    private static let session : URLSession = {
+    init(tableView: UITableView) {
+        tableView.register(EbookTableViewCell.self, forCellReuseIdentifier: EbookTableViewCell.cellReuseIdentifier)
+        self.tableView = tableView
+
         let config = URLSessionConfiguration.default
         let device : String
         if UIDevice.current.userInterfaceIdiom == .pad {
@@ -146,120 +120,48 @@ final class APIManager : NSObject {
         if let infoDictionary = Bundle.main.infoDictionary, let version = infoDictionary["CFBundleShortVersionString"] {
             config.httpAdditionalHeaders = ["User-Agent": "EbookTW/\(version) (\(device); iPhone OS \(systemVersion) like Mac OS X)"]
         }
-        let session = URLSession(configuration: config)
-        return session
-    }()
-
-    init(tableView: UITableView) {
-        super.init()
-        self.tableView = tableView
+        let urlSession = URLSession(configuration: config)
+        self.apiClient = APIClient(urlSession: urlSession)
     }
 
     func searchEbook(keyword: String, errorHandler: @escaping (String) -> Void) {
-        var urlComponent = URLComponents()
-        urlComponent.scheme = "https"
-        urlComponent.host = "ebook.yuer.tw"
-        if AppConfig.isDevAPI {
-            urlComponent.port = 8443
-        }
-        urlComponent.path = "/v1/searches"
-        urlComponent.queryItems = [     // Percent encoding is automatically done with RFC 3986
-            URLQueryItem(name: "q", value: keyword)
-        ]
-        guard let url = urlComponent.url else {
-            assertionFailure()
-            return
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST";
         self.response = nil
         self.resultStates = [String: EbookProviderViewState]()
         self.showBookImageView = !(UserDefaults.standard.bool(forKey: SettingsKey.isDataSaving))
         self.tableView?.reloadData()
-        let task = APIManager.session.dataTask(with: request) { (data, urlResponse, error) in
-            if let error = error {
-                errorHandler(error.localizedDescription)
-                return
-            }
-            let jsonDecoder = JSONDecoder()
-            // From Settings.bundle
-            let isDebugMode = UserDefaults.standard.bool(forKey: "debugMode")
-            if isDebugMode {
-                let successfulStatusCodes = 200..<300
-                if let httpUrlResponse = urlResponse as? HTTPURLResponse, !successfulStatusCodes.contains(httpUrlResponse.statusCode) {
-                    var errorMessage = "HTTP Error \(httpUrlResponse.statusCode)"
-                    if let data = data {
-                        if let ebookResultError = try? jsonDecoder.decode(EbookResultError.self, from: data) {
-                            errorMessage += "\n\(ebookResultError.message)"
+        let isDevAPI = AppConfig.isDevAPI
+        let isDebugMode = UserDefaults.standard.bool(forKey: "debugMode")
+        apiClient.searchEbook(keyword: keyword,
+                              withDevAPI: isDevAPI,
+                              withVerbose: isDebugMode) { result in
+            switch result {
+            case .failure(let error):
+                errorHandler(error.message)
+            case .success(let response):
+                self.response = response
+                for result in response.results {
+                    let bookstoreID = result.bookstore.id
+                    let count = result.books.count
+                    switch count {
+                    case 0:
+                        if !result.bookstore.isOnline {
+                            self.resultStates[bookstoreID] = .notOnline
+                        } else if !result.isOkay {
+                            self.resultStates[bookstoreID] = .notOkay
                         } else {
-                            errorMessage += "\nNot error message"
+                            self.resultStates[bookstoreID] = .noResult
                         }
-                    } else {
-                        errorMessage += "\nNo data"
-                    }
-                    errorHandler(errorMessage)
-                    return
-                }
-            }
-            guard let data = data else {
-                errorHandler("No data")
-                return
-            }
-            var ebookResponse : EbookResponse? = nil
-            do {
-                ebookResponse = try jsonDecoder.decode(EbookResponse.self, from: data)
-            } catch let error as DecodingError {
-                if let ebookResultError = try? jsonDecoder.decode(EbookResultError.self, from: data) {
-                    errorHandler(ebookResultError.message)
-                    return
-                }
-                // From Settings.bundle
-                let isDebugMode = UserDefaults.standard.bool(forKey: "debugMode")
-                if isDebugMode {
-                    switch error {
-                    case .dataCorrupted(let context):
-                        errorHandler(context.debugDescription)
-                    case .keyNotFound(_, let context):
-                        errorHandler(context.debugDescription)
-                    case .typeMismatch(_, let context):
-                        errorHandler(context.debugDescription)
-                    case .valueNotFound(_, let context):
-                        errorHandler(context.debugDescription)
-                    @unknown default:
-                        errorHandler("unknown error")
+                    case 1:
+                        self.resultStates[bookstoreID] = .oneResult
+                    default:
+                        self.resultStates[bookstoreID] = .collapsed
                     }
                 }
-            } catch let error {
-                print(error)
-            }
-            guard let ebookResponse = ebookResponse else {
-                errorHandler("搜尋「\(keyword)」時出現錯誤。麻煩回報給開發者，謝謝！")
-                return
-            }
-            self.response = ebookResponse
-            for result in ebookResponse.results {
-                let bookstoreID = result.bookstore.id
-                let count = result.books.count
-                switch count {
-                case 0:
-                    if !result.bookstore.isOnline {
-                        self.resultStates[bookstoreID] = .notOnline
-                    } else if !result.isOkay {
-                        self.resultStates[bookstoreID] = .notOkay
-                    } else {
-                        self.resultStates[bookstoreID] = .noResult
-                    }
-                case 1:
-                    self.resultStates[bookstoreID] = .oneResult
-                default:
-                    self.resultStates[bookstoreID] = .collapsed
+                DispatchQueue.main.async {
+                    self.tableView?.reloadData()
                 }
-            }
-            DispatchQueue.main.async {
-                self.tableView?.reloadData()
             }
         }
-        task.resume()
     }
 }
 
