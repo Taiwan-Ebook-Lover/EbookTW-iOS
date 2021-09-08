@@ -229,7 +229,8 @@ final class ViewController: UIViewController {
         UserDefaults.standard.set(newSearchCount, forKey: StoreReview.kSearchCount)
 
         if StoreReview.didReachRequestReviewCondition {
-            StoreReview.setTimer()
+            // No longer on the App Store; stop requesting review.
+//            StoreReview.setTimer()
         }
     }
 
