@@ -29,7 +29,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UIBarButtonItem.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).tintColor = .white   // searchBar cancel button
 
         UserDefaults.standard.register(defaults: [StoreReview.kSearchCount: 0])
-        NSUbiquitousKeyValueStore.default.synchronize()
+        let isOnICloud = UserDefaults.standard.bool(forKey: SettingsKey.isOnICloud)
+        if isOnICloud {
+            NSUbiquitousKeyValueStore.default.synchronize()
+        }
 
         return true
     }
