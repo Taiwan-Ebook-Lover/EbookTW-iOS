@@ -251,7 +251,9 @@ extension APIManager : UITableViewDataSource {
         }
         let book = result.books[row]
         cell.bookTitleLabel.text = book.title
-        cell.bookPriceLabel.text = String(format: "%.0f %@", book.price, book.priceCurrency)
+        if let price = book.price {
+            cell.bookPriceLabel.text = String(format: "%.0f %@", price, book.priceCurrency)
+        }
         cell.bookThumbImageLink = book.thumbnail
         if showBookImageView, let url = URL(string: book.thumbnail) {
             cell.showBookImageView = true

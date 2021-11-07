@@ -30,7 +30,7 @@ public struct EbookResponse : Codable, Equatable {
        public let title : String
        public let link : String
        public let priceCurrency : String
-       public let price : Float
+       public let price : Float?
     }
 }
 
