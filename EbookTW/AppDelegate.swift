@@ -34,6 +34,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             NSUbiquitousKeyValueStore.default.synchronize()
         }
 
+        if #available(iOS 15.0, *) {
+            // Fallback to old look of navigation bar on iOS 15 or later
+            // See: https://stackoverflow.com/q/69111478/3796488
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = UIColor.etw_tintColor
+            UINavigationBar.appearance().standardAppearance = appearance
+            UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        }
+
         return true
     }
 
