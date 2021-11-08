@@ -99,6 +99,7 @@ final class APIManager : NSObject {
     private weak var tableView : UITableView?
     private let apiClient: APIClient
 
+    var currentSearchResultID : String? = nil
     private var response : EbookResponse? = nil
     private var resultStates = [String: EbookProviderViewState]()
     private var showBookImageView : Bool = true
@@ -124,20 +125,21 @@ final class APIManager : NSObject {
         self.apiClient = APIClient(urlSession: urlSession)
     }
 
-    func searchEbook(keyword: String, errorHandler: @escaping (String) -> Void) {
+    func searchEbook(parameter: SearchParameter, completionHandler: @escaping (Result<EbookResponse, EbookResultError>) -> Void) {
         self.response = nil
         self.resultStates = [String: EbookProviderViewState]()
         self.showBookImageView = !(UserDefaults.standard.bool(forKey: SettingsKey.isDataSaving))
         self.tableView?.reloadData()
         let isDevAPI = AppConfig.isDevAPI
         let isDebugMode = UserDefaults.standard.bool(forKey: "debugMode")
-        apiClient.searchEbook(keyword: keyword,
+        apiClient.searchEbook(parameter: parameter,
                               withDevAPI: isDevAPI,
                               withVerbose: isDebugMode) { result in
             switch result {
             case .failure(let error):
-                errorHandler(error.message)
+                completionHandler(.failure(error))
             case .success(let response):
+                self.currentSearchResultID = response.id
                 self.response = response
                 for result in response.results {
                     let bookstoreID = result.bookstore.id
@@ -160,6 +162,7 @@ final class APIManager : NSObject {
                 DispatchQueue.main.async {
                     self.tableView?.reloadData()
                 }
+                completionHandler(.success(response))
             }
         }
     }

@@ -275,7 +275,7 @@ extension SearchHistoryManager : UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         if let keyword = tableView.cellForRow(at: indexPath)?.textLabel?.text, keyword != "" {
-            vc?.search(keyword: keyword)
+            vc?.search(parameter: .keyword(keyword))
         }
     }
 }

@@ -9,7 +9,9 @@ import Foundation
 
 public struct EbookResponse : Codable, Equatable {
 
+    public let keywords : String
     public let results : [Result]
+    public let id : String
 
     /// Bookstores
     public struct Result : Codable, Equatable {

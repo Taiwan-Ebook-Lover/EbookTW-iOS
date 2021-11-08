@@ -9,10 +9,11 @@
 import UIKit
 import SafariServices
 import StoreKit
+import EbookTWAPI
 
 enum ViewControllerType {
     case initial
-    case api(keyword: String)
+    case api(parameter: SearchParameter)
     case userScript(keyword: String)
 }
 
@@ -56,37 +57,47 @@ final class ViewController: UIViewController {
             case .initial:
                 tableView.isHidden = true
                 initialView.isHidden = false
-            case .api(keyword: let keyword):
+            case .api(parameter: let parameter):
                 tableView.isHidden = false
                 initialView.isHidden = true
                 tableView.dataSource = apiManager
                 tableView.delegate = apiManager
-                apiManager.searchEbook(keyword: keyword, errorHandler: { (errorString) in
-                    let errorMessage : String = {
-                        if UIDevice.current.userInterfaceIdiom == .phone {
-                            return "您是否要暫時改用舊版模式？"
-                        } else {
-                            return "您是否要重試？"
+                apiManager.searchEbook(parameter: parameter, completionHandler: { result in
+                    switch result {
+                    case .success(let response):
+                        DispatchQueue.main.async {
+                            self.searchBar.text = response.keywords
+                            self.searchedKeyword = response.keywords
                         }
-                    }()
-                    let alert = UIAlertController(title: errorString, message: errorMessage, preferredStyle: .alert)
-                    let switchAction = UIAlertAction(title: "改用舊版模式", style: .default, handler: { (alertAction) in
-                        self.viewType = .userScript(keyword: keyword)
-                    })
-                    let retryAction = UIAlertAction(title: "重試", style: .default, handler: { (alertAction) in
-                        self.viewType = .api(keyword: keyword)
-                    })
-                    let cancelAction = UIAlertAction(title: "取消", style: .cancel, handler: { (alertAction) in
-                        self.viewType = .initial
-                    })
-                    if UIDevice.current.userInterfaceIdiom == .phone {
-                        alert.addAction(switchAction)
-                    } else {
-                        alert.addAction(retryAction)
-                    }
-                    alert.addAction(cancelAction)
-                    DispatchQueue.main.async {
-                        self.present(alert, animated: true, completion: nil)
+                    case .failure(let error):
+                        var errorMessage = "您是否要重試？"
+                        var actions = [UIAlertAction]()
+                        switch parameter {
+                        case .keyword(let keyword):
+                            let switchAction = UIAlertAction(title: "改用舊版模式", style: .default, handler: { (alertAction) in
+                                self.viewType = .userScript(keyword: keyword)
+                            })
+                            if UIDevice.current.userInterfaceIdiom == .phone {
+                                errorMessage = "您是否要暫時改用舊版模式？"
+                                actions.append(switchAction)
+                            }
+                        default:
+                            break
+                        }
+                        let alert = UIAlertController(title: error.message, message: errorMessage, preferredStyle: .alert)
+                        let retryAction = UIAlertAction(title: "重試", style: .default, handler: { (alertAction) in
+                            self.viewType = .api(parameter: parameter)
+                        })
+                        let cancelAction = UIAlertAction(title: "取消", style: .cancel, handler: { (alertAction) in
+                            self.viewType = .initial
+                        })
+                        actions += [retryAction, cancelAction]
+                        for action in actions {
+                            alert.addAction(action)
+                        }
+                        DispatchQueue.main.async {
+                            self.present(alert, animated: true, completion: nil)
+                        }
                     }
                 })
             case .userScript(keyword: let keyword):
@@ -196,29 +207,26 @@ final class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-    /// For universal link; programmatically.
-    func search(keyword: String) {
-        searchBar.text = keyword
-        didTapSearchButton()
-    }
-
-    private func didTapSearchButton() {
-        if let keyword = searchBar.text {
+    func search(parameter: SearchParameter) {
+        switch parameter {
+        case .keyword(let keyword):
+            searchBar.text = keyword
             searchedKeyword = keyword
             let isUserScriptMode = UserDefaults.standard.bool(forKey: SettingsKey.isUserScriptMode)
             switch isUserScriptMode {
             case false:
-                viewType = .api(keyword: keyword)
+                viewType = .api(parameter: .keyword(keyword))
                 tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
             case true:
                 viewType = .userScript(keyword: keyword)
             }
             searchHistoryManager.add(keyword: keyword)
+        case .resultID(let resultID):
+            viewType = .api(parameter: .resultID(resultID))
         }
-        searchBar.resignFirstResponder()    // must do after self.keyword is set
-
+        searchBar.resignFirstResponder()
         switch viewType {
-        case .api(keyword: _):
+        case .api:
             navigationItem.rightBarButtonItem = shareItem   // must do after searchBar.resignFirstResponder()
         default:
             break
@@ -234,14 +242,30 @@ final class ViewController: UIViewController {
         }
     }
 
+    private func didTapSearchButton() {
+        if let keyword = searchBar.text {
+            search(parameter: .keyword(keyword))
+        }
+    }
+
     @objc private func share() {
         switch viewType {
-        case .api(keyword: let keyword):
-            if let keywordEncoded = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let bookURL = URL(string: "https://taiwan-ebook-lover.github.io/search?q=\(keywordEncoded)") {
-                let activityViewController = UIActivityViewController(activityItems: [bookURL], applicationActivities: nil)
-                activityViewController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-                present(activityViewController, animated: true, completion: nil)
+        case .api(parameter: let parameter):
+            var url: URL? = nil
+            switch parameter {
+            case .keyword(let keyword):
+                if let searchResultID = apiManager.currentSearchResultID {
+                    url = URL(string: "https://taiwan-ebook-lover.github.io/searches/\(searchResultID)")
+                } else if let keywordEncoded = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let searchBookURL = URL(string: "https://taiwan-ebook-lover.github.io/searches?q=\(keywordEncoded)") {
+                    url = searchBookURL
+                }
+            case .resultID(let resultID):
+                url = URL(string: "https://taiwan-ebook-lover.github.io/searches/\(resultID)")
             }
+            guard let url = url else { return }
+            let activityViewController = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+            activityViewController.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+            present(activityViewController, animated: true, completion: nil)
         default:
             break
         }

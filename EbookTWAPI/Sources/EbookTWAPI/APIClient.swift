@@ -1,5 +1,10 @@
 import Foundation
 
+public enum SearchParameter {
+    case keyword(String)
+    case resultID(String)
+}
+
 public struct APIClient {
 
     private let urlSession: URLSession
@@ -9,7 +14,7 @@ public struct APIClient {
         self.urlSession = urlSession
     }
 
-    static func makeRequest(from keyword: String, withDevAPI: Bool) -> URLRequest? {
+    static func makeRequest(from parameter: SearchParameter, withDevAPI: Bool) -> URLRequest? {
         var urlComponent = URLComponents()
         urlComponent.scheme = "https"
         urlComponent.host = "ebook.yuer.tw"
@@ -17,15 +22,23 @@ public struct APIClient {
             urlComponent.port = 8443
         }
         urlComponent.path = "/v1/searches"
-        urlComponent.queryItems = [     // Percent encoding is automatically done with RFC 3986
-            URLQueryItem(name: "q", value: keyword)
-        ]
+        let httpMethod: String
+        switch parameter {
+        case .keyword(let keyword):
+            httpMethod = "POST"
+            urlComponent.queryItems = [     // Percent encoding is automatically done with RFC 3986
+                URLQueryItem(name: "q", value: keyword)
+            ]
+        case .resultID(let resultID):
+            httpMethod = "GET"
+            urlComponent.path.append(contentsOf: "/\(resultID)")
+        }
         guard let url = urlComponent.url else {
             assertionFailure()
             return nil
         }
         var request = URLRequest(url: url)
-        request.httpMethod = "POST";
+        request.httpMethod = httpMethod
         return request
     }
 
@@ -33,9 +46,9 @@ public struct APIClient {
         return try decoder.decode(EbookResponse.self, from: data)
     }
 
-    public func searchEbook(keyword: String, withDevAPI: Bool, withVerbose: Bool,
+    public func searchEbook(parameter: SearchParameter, withDevAPI: Bool, withVerbose: Bool,
                             completionHandler: @escaping (Result<EbookResponse, EbookResultError>) -> Void) {
-        guard let request = APIClient.makeRequest(from: keyword, withDevAPI: withDevAPI) else {
+        guard let request = APIClient.makeRequest(from: parameter, withDevAPI: withDevAPI) else {
             completionHandler(.failure(EbookResultError(message: "Error of making request")))
             return
         }
@@ -92,7 +105,12 @@ public struct APIClient {
                 completionHandler(.failure(EbookResultError(message: error.localizedDescription)))
             }
             guard let ebookResponse = ebookResponse else {
-                completionHandler(.failure(EbookResultError(message: "搜尋「\(keyword)」時出現錯誤。麻煩回報給開發者，謝謝！")))
+                switch parameter {
+                case .keyword(let keyword):
+                    completionHandler(.failure(EbookResultError(message: "搜尋「\(keyword)」時發生錯誤。麻煩回報給開發者，謝謝！")))
+                case .resultID:
+                    completionHandler(.failure(EbookResultError(message: "搜尋連結無法使用")))
+                }
                 return
             }
             completionHandler(.success(ebookResponse))

@@ -79,24 +79,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             showAlert(msg: "No path")
             return false
         }
-        if path != "/search" {
-            showAlert(msg: "Not /search")
+        // Web for API v1: /searches
+        // Web for legacy API v0.1: /search
+        if path.hasPrefix("/searches/") {
+            let searchResultID = path.replacingOccurrences(of: "/searches/", with: "")
+            vc.search(parameter: .resultID(searchResultID))
+            return true
+        } else if path == "/search" {
+            guard let params = components.queryItems else {
+                showAlert(msg: "No query")
+                return false
+            }
+            guard let keywordEncoded = params.first(where: { $0.name == "q" } )?.value else {
+                showAlert(msg: "No keyword")
+                return false
+            }
+            guard let keywordDecoded = keywordEncoded.removingPercentEncoding else {
+                showAlert(msg: "Keyword cannot be decoded")
+                return false
+            }
+            vc.search(parameter: .keyword(keywordDecoded))
+            return true
+        } else {
+            showAlert(msg: "\(path) not supported")
             return false
         }
-        guard let params = components.queryItems else {
-            showAlert(msg: "No query")
-            return false
-        }
-        guard let keywordEncoded = params.first(where: { $0.name == "q" } )?.value else {
-            showAlert(msg: "No keyword")
-            return false
-        }
-        guard let keywordDecoded = keywordEncoded.removingPercentEncoding else {
-            showAlert(msg: "Keyword cannot be decoded")
-            return false
-        }
-        vc.search(keyword: keywordDecoded)
-        return true
     }
 
     private func showAlert(msg: String) {
