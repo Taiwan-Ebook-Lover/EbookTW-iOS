@@ -70,7 +70,7 @@ final class UserScriptManager : NSObject {
         let userScriptString1 = """
             var styleElement = document.createElement('style');
             document.documentElement.appendChild(styleElement);
-            styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-ct-quickBar, div.special-banner, div#leftMenu, div#pagination, footer {display: none !important; height: 0 !important; width: 0 !important;} ul#main_items li:not(:first-child) {display: none !important;}';
+            styleElement.textContent = 'header, div.top-nav-container, div.rm-breadcrumb, div.rm-ct-quickBar, div.special-banner, div#leftMenu, div#pagination, footer {display: none !important; height: 0 !important; width: 0 !important;} ul#main_items li:not(:first-child) {display: none !important;} ul.quickBar-sort {display:none}';
         """
         // only keep div.rm-search-summary for no search result
         let userScriptString2 = "if (document.getElementById('chalkboard').clientHeight != 0) {" +
@@ -90,7 +90,7 @@ final class UserScriptManager : NSObject {
         let userScriptString = """
           var styleElement = document.createElement('style');
           document.documentElement.appendChild(styleElement);
-          styleElement.textContent = 'div#header, div#catbtn, div.tbar, h4.keywordlist, div.mm_031, div#footer, div.color_basic, div.bc, div.pull_20, blockquote, div.search-mod-03, div.cntlisearch07, div.cntlisearch09, div.cntlisearch10, div.cntlisearch11, div.search-mod-01, div.search-mod-04, div.type04_footer {display: none !important; height: 0 !important;} div#content {padding: 0 !important;} ul.bd li:not(:first-child), ul.searchbook li:not(:first-child) {display: none !important;}';
+          styleElement.textContent = 'div#header, div#catbtn, div.tbar, h4.keywordlist, div.mm_031, div#footer, div.color_basic, div.bc, div.pull_20, blockquote, div.search-mod-03, div.cntlisearch07, div.cntlisearch09, div.cntlisearch10, div.cntlisearch11, div.search-mod-01, div.search-mod-04, div.type04_footer {display: none !important; height: 0 !important;} div#content {padding: 0 !important;} ul.bd li:not(:first-child), ul.searchbook li:not(:first-child) {display: none !important;} div#app_banner {display: none}';
         """
         let userScript = WKUserScript(source: userScriptString, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         let config = WKWebViewConfiguration()
@@ -183,7 +183,7 @@ final class UserScriptManager : NSObject {
         }
         let urlTaaze = URL(string: "https://www.taaze.tw/rwd_searchResult.html?keyword%5B%5D=" + keywordEncoded + "&keyType%5B%5D=1&prodKind=4")!
         let urlReadmoo = URL(string: "https://readmoo.com/search/keyword?q=" + keywordEncoded)!
-        let urlBooks = URL(string: "http://search.books.com.tw/search/query/key/" + keywordEncoded + "/cat/EBA/")!
+        let urlBooks = URL(string: "https://search.books.com.tw/search/query/key/" + keywordEncoded + "/cat/EBA/")!
         let urlKobo = URL(string: "https://www.kobo.com/tw/zh/search?Query=" + keywordEncoded)!
 
         urls.removeAll()
