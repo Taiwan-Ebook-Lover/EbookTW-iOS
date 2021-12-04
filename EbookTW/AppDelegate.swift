@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import EbookTWAPI
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -71,37 +72,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
         guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
-            let incomingURL = userActivity.webpageURL,
-            let components = NSURLComponents(url: incomingURL, resolvingAgainstBaseURL: true) else {
+            let incomingURL = userActivity.webpageURL else {
                 return false
         }
-        guard let path = components.path else {
-            showAlert(msg: "No path")
-            return false
-        }
-        // Web for API v1: /searches
-        // Web for legacy API v0.1: /search
-        if path.hasPrefix("/searches/") {
-            let searchResultID = path.replacingOccurrences(of: "/searches/", with: "")
-            vc.search(parameter: .resultID(searchResultID))
+        let result = APIClient.makeSearchParameter(from: incomingURL)
+        switch result {
+        case .success(let searchParameter):
+            vc.search(parameter: searchParameter)
             return true
-        } else if path == "/search" {
-            guard let params = components.queryItems else {
-                showAlert(msg: "No query")
-                return false
-            }
-            guard let keywordEncoded = params.first(where: { $0.name == "q" } )?.value else {
-                showAlert(msg: "No keyword")
-                return false
-            }
-            guard let keywordDecoded = keywordEncoded.removingPercentEncoding else {
-                showAlert(msg: "Keyword cannot be decoded")
-                return false
-            }
-            vc.search(parameter: .keyword(keywordDecoded))
-            return true
-        } else {
-            showAlert(msg: "\(path) not supported")
+        case .failure(let error):
+            showAlert(msg: error.message)
             return false
         }
     }

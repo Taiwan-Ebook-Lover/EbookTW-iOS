@@ -3,6 +3,37 @@ import XCTest
 
 final class EbookTWAPITests: XCTestCase {
 
+    var webBaseURLComponents : URLComponents {
+        var urlComponent = URLComponents()
+        urlComponent.scheme = "https"
+        urlComponent.host = "taiwan-ebook-lover.github.io"
+        return urlComponent
+    }
+
+    func testMakingSearchParameter() throws {
+        // Based on spec of
+        // https://github.com/Taiwan-Ebook-Lover/Taiwan-Ebook-Lover.github.io/pull/54#pullrequestreview-821736848
+        let testingArray : [(path: String, query: String?, expected: SearchParameter)] = [
+            ("/search/123", nil, SearchParameter.resultID("123")),
+            ("/searches/456", nil, SearchParameter.resultID("456")),
+            ("/search", "q=123", SearchParameter.keyword("123")),
+            ("/searches", "q=456", SearchParameter.keyword("456")),
+        ]
+        for testingCase in testingArray {
+            var urlComponent = webBaseURLComponents
+            urlComponent.path = testingCase.path
+            urlComponent.query = testingCase.query
+            XCTAssertNotNil(urlComponent.url)
+            let result = APIClient.makeSearchParameter(from: urlComponent.url!)
+            switch result {
+            case .success(let searchParameter):
+                XCTAssertEqual(searchParameter, testingCase.expected)
+            case .failure(let error):
+                XCTFail(error.message)
+            }
+        }
+    }
+
     func testMakingURLRequest() throws {
         let keywordEn = "bookname"
         let urlRequestEn = APIClient.makeRequest(from: .keyword(keywordEn), withDevAPI: false)

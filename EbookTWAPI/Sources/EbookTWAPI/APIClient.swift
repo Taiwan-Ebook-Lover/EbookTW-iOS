@@ -1,8 +1,12 @@
 import Foundation
 
-public enum SearchParameter {
+public enum SearchParameter : Equatable {
     case keyword(String)
     case resultID(String)
+}
+
+public struct MakeSearchParameterError : Error {
+    public let message : String
 }
 
 public struct APIClient {
@@ -12,6 +16,35 @@ public struct APIClient {
     /// - Parameter urlSession: pass nil for default implementation
     public init(urlSession: URLSession = URLSession.shared) {
         self.urlSession = urlSession
+    }
+
+    public static func makeSearchParameter(from url: URL) -> Result<SearchParameter, MakeSearchParameterError> {
+        guard let components = NSURLComponents(url: url, resolvingAgainstBaseURL: true),
+              let path = components.path else {
+            return .failure(MakeSearchParameterError(message: "No path"))
+        }
+        // Web for API v1: /searches
+        // Web for legacy API v0.1: /search
+        let pathsWithResultID = ["/searches/", "/search/"]
+        for pathWithResultID in pathsWithResultID {
+            if path.hasPrefix(pathWithResultID) && components.query == nil {
+                let searchResultID = path.replacingOccurrences(of: pathWithResultID, with: "")
+                return .success(.resultID(searchResultID))
+            }
+        }
+        if path == "/search" || path == "/searches" {
+            guard let queryItems = components.queryItems else {
+                return .failure(MakeSearchParameterError(message: "No query"))
+            }
+            for queryItem in queryItems {
+                if queryItem.name == "q", let keyword = queryItem.value {
+                    return .success(.keyword(keyword))
+                }
+            }
+            return .failure(MakeSearchParameterError(message: "No search keyword"))
+        } else {
+            return .failure(MakeSearchParameterError(message: "\(path) not supported"))
+        }
     }
 
     static func makeRequest(from parameter: SearchParameter, withDevAPI: Bool) -> URLRequest? {
