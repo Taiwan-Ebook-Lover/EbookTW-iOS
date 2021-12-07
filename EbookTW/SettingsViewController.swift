@@ -255,6 +255,9 @@ class SettingsViewController : UITableViewController {
                             if #available(iOS 10.0, *) {
                                 safari.preferredBarTintColor = .etw_tintColor
                                 safari.preferredControlTintColor = .white
+                                if #available(iOS 11.0, *) {
+                                    safari.dismissButtonStyle = .close
+                                }
                             }
                             present(safari, animated: true, completion: nil)
                         }
@@ -265,6 +268,9 @@ class SettingsViewController : UITableViewController {
                                 if #available(iOS 10.0, *) {
                                     safari.preferredBarTintColor = .etw_tintColor
                                     safari.preferredControlTintColor = .white
+                                    if #available(iOS 11.0, *) {
+                                        safari.dismissButtonStyle = .close
+                                    }
                                 }
                                 self.present(safari, animated: true, completion: nil)
                             }
@@ -287,6 +293,9 @@ class SettingsViewController : UITableViewController {
                             if #available(iOS 10.0, *) {
                                 safari.preferredBarTintColor = .etw_tintColor
                                 safari.preferredControlTintColor = .white
+                                if #available(iOS 11.0, *) {
+                                    safari.dismissButtonStyle = .close
+                                }
                             }
                             present(safari, animated: true, completion: nil)
                         }

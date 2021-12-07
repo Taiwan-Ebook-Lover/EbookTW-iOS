@@ -23,26 +23,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window = window
 
         window.tintColor = UIColor.etw_tintColor
-        UINavigationBar.appearance().isTranslucent = false
-        UINavigationBar.appearance().barTintColor = UIColor.etw_tintColor
-        UITextField.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).backgroundColor = .white
-        UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         UIBarButtonItem.appearance(whenContainedInInstancesOf: [UINavigationBar.self]).tintColor = .white   // searchBar cancel button
-
-        UserDefaults.standard.register(defaults: [StoreReview.kSearchCount: 0])
-        let isOnICloud = UserDefaults.standard.bool(forKey: SettingsKey.isOnICloud)
-        if isOnICloud {
-            NSUbiquitousKeyValueStore.default.synchronize()
-        }
-
         if #available(iOS 15.0, *) {
             // Fallback to old look of navigation bar on iOS 15 or later
             // See: https://stackoverflow.com/q/69111478/3796488
             let appearance = UINavigationBarAppearance()
             appearance.configureWithOpaqueBackground()
             appearance.backgroundColor = UIColor.etw_tintColor
+            appearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        } else {
+            UINavigationBar.appearance().isTranslucent = false
+            UINavigationBar.appearance().barTintColor = UIColor.etw_tintColor
+            UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+        }
+
+        UserDefaults.standard.register(defaults: [StoreReview.kSearchCount: 0])
+        let isOnICloud = UserDefaults.standard.bool(forKey: SettingsKey.isOnICloud)
+        if isOnICloud {
+            NSUbiquitousKeyValueStore.default.synchronize()
         }
 
         return true

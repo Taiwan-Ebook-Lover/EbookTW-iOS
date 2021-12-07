@@ -35,7 +35,14 @@ struct StoreReview {
     static func setTimer() {
         if #available(iOS 10.3, *) {
             idleTimer = Timer.scheduledTimer(withTimeInterval: idleTime, repeats: false, block: { (timer) in
-                SKStoreReviewController.requestReview()
+                if #available(iOS 14.0, *) {
+                    // See: https://stackoverflow.com/q/63953891/3796488
+                    if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+                        SKStoreReviewController.requestReview(in: scene)
+                    }
+                } else {
+                    SKStoreReviewController.requestReview()
+                }
             })
         }
     }
