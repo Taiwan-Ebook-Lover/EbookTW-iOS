@@ -254,11 +254,11 @@ extension APIManager : UITableViewDataSource {
         }
         let book = result.books[row]
         cell.bookTitleLabel.text = book.title
-        if let price = book.price {
-            cell.bookPriceLabel.text = String(format: "%.0f %@", price, book.priceCurrency)
+        if let price = book.price, let priceCurrency = book.priceCurrency {
+            cell.bookPriceLabel.text = String(format: "%.0f %@", price, priceCurrency)
         }
         cell.bookThumbImageLink = book.thumbnail
-        if showBookImageView, let url = URL(string: book.thumbnail) {
+        if showBookImageView, let thumbnail = book.thumbnail, let url = URL(string: thumbnail) {
             cell.showBookImageView = true
             let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, urlResponse, error) in
                 if let error = error {
@@ -371,7 +371,7 @@ extension APIManager : UITableViewDelegate {
             assertionFailure()
         }
         let book = result.books[row]
-        guard let url = URL(string: book.link) else {
+        guard let link = book.link, let url = URL(string: link) else {
             return
         }
         let safariVC = SFSafariViewController(url: url)

@@ -28,10 +28,10 @@ public struct EbookResponse : Codable, Equatable {
     }
 
     public struct Book : Codable, Equatable {
-       public let thumbnail : String
-       public let title : String
-       public let link : String
-       public let priceCurrency : String
+       public let thumbnail : String?
+       public let title : String?
+       public let link : String?
+       public let priceCurrency : String?
        public let price : Float?
     }
 }
